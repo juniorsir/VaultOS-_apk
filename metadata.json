@@ -1,0 +1,7 @@
+{
+  "name": "VaultOS",
+  "description": "A high-performance, secure sovereign interface for encrypted file storage, ephemeral mail, and P2P data sharing. Features zero-knowledge architecture and hardened transmission tunnels.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
