@@ -3,8 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 
-const REST_URL = 'https://raindrops-0co5.onrender.com';
-const SIGNALING_URL = 'wss://raindrops-2osp.onrender.com';
+const REST_URL = '';
+const SIGNALING_URL = '';
 const API_KEY = 'PleaseGiveCreditIfYouUse';
 const CHUNK_SIZE = 32 * 1024; // 32KB chunks for flow control
 const BUFFER_THRESHOLD = 1024 * 1024; // 1MB Backpressure limit
@@ -39,6 +39,7 @@ export const useWebRTC = () => {
   const socketRef = useRef<Socket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
+  const iceCandidateQueueRef = useRef<RTCIceCandidateInit[]>([]);
   
   // Transfer Refs
   const incomingBufferRef = useRef<ArrayBuffer[]>([]);
@@ -56,10 +57,16 @@ export const useWebRTC = () => {
   const setupDataChannel = (channel: RTCDataChannel) => {
     channel.binaryType = 'arraybuffer';
     
-    channel.onopen = () => {
+    const handleOpen = () => {
         console.log('🚀 Data Channel OPEN');
         setState(prev => ({ ...prev, status: 'CONNECTED', error: null }));
     };
+
+    if (channel.readyState === 'open') {
+        handleOpen();
+    } else {
+        channel.onopen = handleOpen;
+    }
 
     channel.onmessage = handleDataMessage;
     
@@ -85,6 +92,7 @@ export const useWebRTC = () => {
 
     pc.onicecandidate = (event) => {
       if (event.candidate && socketRef.current) {
+        console.log('🧊 Sending ICE candidate');
         socketRef.current.emit('ice-candidate', { roomId, candidate: event.candidate });
       }
     };
@@ -100,6 +108,16 @@ export const useWebRTC = () => {
         }
     };
 
+    pc.oniceconnectionstatechange = () => {
+        console.log('🧊 ICE Connection State:', pc.iceConnectionState);
+    };
+
+    pc.onsignalingstatechange = () => {
+        console.log('📡 Signaling State:', pc.signalingState);
+    };
+
+    pcRef.current = pc;
+
     if (isInitiator) {
       // Host creates the channel
       const channel = pc.createDataChannel("fileTransfer");
@@ -114,8 +132,6 @@ export const useWebRTC = () => {
         setupDataChannel(event.channel);
       };
     }
-
-    pcRef.current = pc;
   }, []);
 
   const initializeSocket = useCallback((roomId: string) => {
@@ -125,7 +141,7 @@ export const useWebRTC = () => {
         return socketRef.current;
     }
 
-    const socket = io(SIGNALING_URL, {
+    const socket = io(SIGNALING_URL || undefined, {
       transports: ['websocket'], // Force WebSocket for stability
       reconnectionAttempts: 5
     });
@@ -141,7 +157,7 @@ export const useWebRTC = () => {
       
       // Check if we should initiate (Host logic)
       // Robust check: if server sends 'initiator' ID, match it. Else fallback to isHost state.
-      const isInitiator = (data && data.initiator && data.initiator === socket.id) || (!data?.initiator && state.isHost);
+      const isInitiator = (data && data.initiator && socket.id && data.initiator === socket.id) || state.isHost;
       
       setupPeerConnection(roomId, isInitiator);
     });
@@ -167,21 +183,52 @@ export const useWebRTC = () => {
              await pc.setLocalDescription(answer);
              socket.emit('answer', { roomId, sdp: answer });
         }
+        
+        // Process queued ICE candidates
+        while (iceCandidateQueueRef.current.length > 0) {
+            const candidate = iceCandidateQueueRef.current.shift();
+            if (candidate) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (e) {
+                    console.error("Error adding queued ice candidate", e);
+                }
+            }
+        }
     });
 
     socket.on('answer', async ({ sdp }) => {
         const pc = pcRef.current;
-        if (pc) await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+        if (pc) {
+            await pc.setRemoteDescription(new RTCSessionDescription(sdp));
+            // Process queued ICE candidates
+            while (iceCandidateQueueRef.current.length > 0) {
+                const candidate = iceCandidateQueueRef.current.shift();
+                if (candidate) {
+                    try {
+                        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                    } catch (e) {
+                        console.error("Error adding queued ice candidate", e);
+                    }
+                }
+            }
+        }
     });
 
     socket.on('ice-candidate', async ({ candidate }) => {
         const pc = pcRef.current;
         if (pc && candidate) {
-            try {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate));
-            } catch (e) {
-                console.error("Error adding ice candidate", e);
+            if (!pc.remoteDescription) {
+                iceCandidateQueueRef.current.push(candidate);
+            } else {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (e) {
+                    console.error("Error adding ice candidate", e);
+                }
             }
+        } else if (candidate) {
+            iceCandidateQueueRef.current.push(candidate);
         }
     });
 

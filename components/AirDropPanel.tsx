@@ -17,6 +17,7 @@ const AirDropPanel: React.FC = memo(() => {
 
   const [joinCode, setJoinCode] = useState('');
   const [showScanner, setShowScanner] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatSpeed = (bytesPerSec: number) => {
@@ -27,6 +28,33 @@ const AirDropPanel: React.FC = memo(() => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
         sendFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      sendFile(e.dataTransfer.files[0]);
     }
   };
 
@@ -386,20 +414,38 @@ const AirDropPanel: React.FC = memo(() => {
                     {!transferType && status !== 'COMPLETED' ? (
                         <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
                              <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                             <button 
+                             <div 
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-56 rounded-[30px] border-2 border-dashed border-slate-700 hover:border-violet-500 hover:bg-violet-500/5 flex flex-col items-center justify-center gap-5 transition-all duration-300 group relative overflow-hidden"
+                                onDragEnter={handleDragEnter}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`w-full h-56 rounded-[30px] border-2 border-dashed flex flex-col items-center justify-center gap-5 transition-all duration-300 group relative overflow-hidden cursor-pointer ${
+                                    isDragging 
+                                        ? 'border-violet-500 bg-violet-500/10 scale-[1.02]' 
+                                        : 'border-slate-700 hover:border-violet-500 hover:bg-violet-500/5'
+                                }`}
                              >
-                                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                                <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent transition-opacity duration-500 ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
                                 
-                                <div className="relative z-10 w-20 h-20 rounded-full bg-slate-800 group-hover:bg-violet-500 text-slate-400 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-xl group-hover:scale-110 group-hover:shadow-violet-500/30">
-                                    <UploadIcon className="w-8 h-8" />
+                                <div className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
+                                    isDragging 
+                                        ? 'bg-violet-500 text-white scale-110 shadow-violet-500/30' 
+                                        : 'bg-slate-800 text-slate-400 group-hover:bg-violet-500 group-hover:text-white group-hover:scale-110 group-hover:shadow-violet-500/30'
+                                }`}>
+                                    <UploadIcon className={`w-8 h-8 ${isDragging ? 'animate-bounce' : ''}`} />
                                 </div>
                                 <div className="relative z-10 text-center">
-                                    <h3 className="text-xl font-bold text-slate-300 group-hover:text-white mb-1">Click to Send File</h3>
-                                    <p className="text-sm text-slate-500 group-hover:text-violet-200/70">Secure Direct Tunnel Ready</p>
+                                    <h3 className={`text-xl font-bold mb-1 transition-colors ${isDragging ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                                        {isDragging ? 'Drop File to Send' : 'Click or Drag File to Send'}
+                                    </h3>
+                                    <p className={`text-sm transition-colors ${isDragging ? 'text-violet-200' : 'text-slate-500 group-hover:text-violet-200/70'}`}>
+                                        Secure Direct Tunnel Ready
+                                    </p>
                                 </div>
-                             </button>
+                             </div>
                         </div>
                     ) : (
                         <div className="w-full p-1 rounded-[30px] bg-gradient-to-br from-slate-700/50 to-slate-800/50 border border-white/10 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
