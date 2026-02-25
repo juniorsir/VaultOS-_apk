@@ -3,8 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 
-const REST_URL = '';
-const SIGNALING_URL = '';
+const REST_URL = import.meta.env.VITE_P2P_API_URL || '';
+const SIGNALING_URL = import.meta.env.VITE_P2P_API_URL || '';
 const API_KEY = 'PleaseGiveCreditIfYouUse';
 const CHUNK_SIZE = 32 * 1024; // 32KB chunks for flow control
 const BUFFER_THRESHOLD = 1024 * 1024; // 1MB Backpressure limit
@@ -134,21 +134,36 @@ export const useWebRTC = () => {
     }
   }, []);
 
-  const initializeSocket = useCallback((roomId: string) => {
-    // Prevent duplicate connections
-    if (socketRef.current && socketRef.current.connected) {
-        // If room ID changed, re-join
-        return socketRef.current;
+  const initializeSocket = useCallback((roomId: string, isHostRole: boolean) => {
+    // Clean up existing socket if it exists
+    if (socketRef.current) {
+        if (socketRef.current.connected) {
+            // If already connected to the same room, reuse it? 
+            // But we might need to re-attach listeners or handle role changes.
+            // Safer to disconnect and reconnect for a clean slate in this specific flow.
+             socketRef.current.disconnect();
+        } else {
+             socketRef.current.disconnect(); // Ensure it's closed
+        }
+        socketRef.current = null;
     }
 
+    // Allow default transports (polling + websocket) for better compatibility
     const socket = io(SIGNALING_URL || undefined, {
-      transports: ['websocket'], // Force WebSocket for stability
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      timeout: 10000,
+      transports: ['websocket', 'polling'], // Prioritize WebSocket
+      withCredentials: false
     });
 
     socket.on('connect', () => {
       console.log('🔌 Signaling connected:', socket.id);
       socket.emit('join-room', roomId);
+    });
+
+    socket.on('connect_error', (err) => {
+        console.error('Socket connection error:', err);
+        setState(prev => ({ ...prev, status: 'ERROR', error: 'Signaling connection failed' }));
     });
 
     socket.on('peer-connected', async (data: any) => {
@@ -157,7 +172,7 @@ export const useWebRTC = () => {
       
       // Check if we should initiate (Host logic)
       // Robust check: if server sends 'initiator' ID, match it. Else fallback to isHost state.
-      const isInitiator = (data && data.initiator && socket.id && data.initiator === socket.id) || state.isHost;
+      const isInitiator = (data && data.initiator && socket.id && data.initiator === socket.id) || isHostRole;
       
       setupPeerConnection(roomId, isInitiator);
     });
@@ -243,7 +258,7 @@ export const useWebRTC = () => {
 
     socketRef.current = socket;
     return socket;
-  }, [setupPeerConnection, state.isHost]);
+  }, [setupPeerConnection]);
 
   // --- File Transfer Handling ---
 
@@ -400,7 +415,7 @@ export const useWebRTC = () => {
         if (!roomId) throw new Error("No room ID received");
 
         setState(prev => ({ ...prev, status: 'PAIRING', roomId }));
-        initializeSocket(roomId);
+        initializeSocket(roomId, true);
 
     } catch (err: any) {
         setState(prev => ({ ...prev, status: 'ERROR', error: err.message || "Failed to create session" }));
@@ -409,7 +424,7 @@ export const useWebRTC = () => {
 
   const joinSession = useCallback((inputRoomId: string) => {
     setState(prev => ({ ...prev, status: 'CONNECTING', isHost: false, roomId: inputRoomId }));
-    initializeSocket(inputRoomId);
+    initializeSocket(inputRoomId, false);
   }, [initializeSocket]);
 
   const disconnect = useCallback(() => {
