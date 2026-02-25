@@ -279,20 +279,20 @@ const App: React.FC = () => {
         ))}
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 relative z-50">
-        <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="max-w-6xl lg:max-w-7xl xl:max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-10 relative z-50">
+        <header className="mb-6 md:mb-8 lg:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-8">
           <div className="flex items-center justify-between w-full md:w-auto">
-            <div className="flex items-center gap-3 group cursor-pointer" onClick={() => setShowLanding(true)}>
-              <div className="p-2.5 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-[16px] border border-violet-500/20 shadow-lg shadow-violet-500/10 transition-transform group-hover:scale-105">
-                <VaultIcon className="w-5 h-5 text-violet-400" />
+            <div className="flex items-center gap-3 lg:gap-5 group cursor-pointer" onClick={() => setShowLanding(true)}>
+              <div className="p-2.5 lg:p-4 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-[16px] lg:rounded-[20px] border border-violet-500/20 shadow-lg shadow-violet-500/10 transition-transform group-hover:scale-105">
+                <VaultIcon className="w-5 h-5 lg:w-7 lg:h-7 text-violet-400" />
               </div>
               <div>
-                <h1 className="text-lg font-bold tracking-tight">
+                <h1 className="text-lg lg:text-2xl font-bold tracking-tight">
                   <span className="text-white">Vault</span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">OS</span>
                 </h1>
-                <div className="hidden md:flex items-center gap-1.5 mt-0.5 text-[10px] font-medium text-slate-400">
-                  <span className={`inline-block w-1.5 h-1.5 rounded-full transition-all duration-500 ${isConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] scale-110' : 'bg-slate-600 scale-100'}`}></span>
+                <div className="hidden md:flex items-center gap-1.5 lg:gap-2 mt-0.5 text-[10px] lg:text-xs font-medium text-slate-400">
+                  <span className={`inline-block w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full transition-all duration-500 ${isConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] scale-110' : 'bg-slate-600 scale-100'}`}></span>
                   <span className={`transition-colors duration-500 ${isConnected ? 'text-emerald-400' : 'text-slate-400'}`}>
                     {isConnected ? 'Online' : 'Offline'}
                   </span>
@@ -308,14 +308,14 @@ const App: React.FC = () => {
             {/* Scroll Container */}
             <nav 
                 ref={navRef}
-                className="relative flex items-center gap-1 md:gap-1 overflow-x-auto no-scrollbar p-1 w-full md:w-auto rounded-full"
+                className="relative flex items-center gap-1 md:gap-1 lg:gap-2 overflow-x-auto no-scrollbar p-1 lg:p-1.5 w-full md:w-auto rounded-full"
             >
                 {NAV_ITEMS.map((item, index) => (
                   <button
                     key={item.id}
                     ref={index === 0 ? firstItemRef : index === NAV_ITEMS.length - 1 ? lastItemRef : null}
                     onClick={() => setActiveTab(item.id as TabType)}
-                    className={`liquid-btn flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-[11px] md:text-xs font-semibold transition-all duration-300 ease-out whitespace-nowrap relative overflow-hidden group/item ${
+                    className={`liquid-btn flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-2.5 px-4 py-2 lg:px-6 lg:py-3 rounded-full text-[11px] md:text-xs lg:text-sm font-semibold transition-all duration-300 ease-out whitespace-nowrap relative overflow-hidden group/item ${
                       activeTab === item.id 
                         ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-[0_4px_20px_-4px_rgba(139,92,246,0.5)] scale-100' 
                         : 'text-slate-400 hover:text-white hover:bg-white/5 active:scale-95'
@@ -327,10 +327,10 @@ const App: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
                     )}
                     
-                    <item.icon className={`w-3.5 h-3.5 transition-colors duration-300 ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover/item:text-violet-300'}`} />
+                    <item.icon className={`w-3.5 h-3.5 lg:w-5 lg:h-5 transition-colors duration-300 ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover/item:text-violet-300'}`} />
                     <span className="relative z-10">{item.label}</span>
                     {item.id === 'mail' && hasUnreadMail && (
-                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
+                        <span className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
                     )}
                   </button>
                 ))}

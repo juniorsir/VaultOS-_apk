@@ -6,20 +6,27 @@ import axios from 'axios';
 const REST_URL = '';
 const SIGNALING_URL = '';
 const API_KEY = 'PleaseGiveCreditIfYouUse';
-const CHUNK_SIZE = 32 * 1024; // 32KB chunks for flow control
-const BUFFER_THRESHOLD = 1024 * 1024; // 1MB Backpressure limit
+const CHUNK_SIZE = 64 * 1024; // 64KB chunks for better throughput
+const BUFFER_THRESHOLD = 8 * 1024 * 1024; // 8MB Backpressure limit
+
+export interface TransferItem {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  type: 'sending' | 'receiving';
+  status: 'pending' | 'transferring' | 'completed' | 'error';
+  progress: number;
+  speed: number;
+  timestamp: number;
+}
 
 interface TransferState {
   status: 'IDLE' | 'CREATING' | 'PAIRING' | 'CONNECTING' | 'CONNECTED' | 'TRANSFERRING' | 'COMPLETED' | 'ERROR';
   error: string | null;
   roomId: string | null;
   isHost: boolean;
-  progress: number;
-  transferSpeed: number;
-  fileName: string | null;
-  fileSize: number | null;
-  transferType: 'sending' | 'receiving' | null;
   peersCount: number;
+  transfers: TransferItem[];
 }
 
 export const useWebRTC = () => {
@@ -28,12 +35,8 @@ export const useWebRTC = () => {
     error: null,
     roomId: null,
     isHost: false,
-    progress: 0,
-    transferSpeed: 0,
-    fileName: null,
-    fileSize: null,
-    transferType: null,
     peersCount: 0,
+    transfers: []
   });
 
   const socketRef = useRef<Socket | null>(null);
@@ -46,6 +49,10 @@ export const useWebRTC = () => {
   const incomingBytesRef = useRef(0);
   const startTimeRef = useRef(0);
   const lastProgressUpdate = useRef(0);
+  const lastSpeedBytes = useRef(0);
+  const lastSpeedTime = useRef(0);
+  
+  const currentTransferIdRef = useRef<string | null>(null);
   const transferMetaRef = useRef<{ fileName: string | null; fileSize: number | null }>({
     fileName: null,
     fileSize: null
@@ -262,6 +269,8 @@ export const useWebRTC = () => {
                 incomingBufferRef.current = [];
                 incomingBytesRef.current = 0;
                 startTimeRef.current = Date.now();
+                lastSpeedTime.current = Date.now();
+                lastSpeedBytes.current = 0;
                 
                 // Update Ref
                 transferMetaRef.current = {
@@ -269,13 +278,24 @@ export const useWebRTC = () => {
                     fileSize: meta.size
                 };
                 
+                const newTransferId = Math.random().toString(36).substring(7);
+                currentTransferIdRef.current = newTransferId;
+
+                const newTransfer: TransferItem = {
+                    id: newTransferId,
+                    fileName: meta.name,
+                    fileSize: meta.size,
+                    type: 'receiving',
+                    status: 'transferring',
+                    progress: 0,
+                    speed: 0,
+                    timestamp: Date.now()
+                };
+                
                 setState(prev => ({
                     ...prev,
                     status: 'TRANSFERRING',
-                    transferType: 'receiving',
-                    fileName: meta.name,
-                    fileSize: meta.size,
-                    progress: 0
+                    transfers: [newTransfer, ...prev.transfers]
                 }));
             }
         } catch (e) {
@@ -303,16 +323,28 @@ export const useWebRTC = () => {
 
   const updateProgress = (current: number, total: number) => {
     const now = Date.now();
-    // Throttle updates to ~60fps
+    // Throttle UI updates to ~60fps
     if (now - lastProgressUpdate.current > 16 || current >= total) {
-        const elapsed = (now - startTimeRef.current) / 1000;
-        const speed = elapsed > 0 ? current / elapsed : 0;
         const percent = (current / total) * 100;
+        
+        // Calculate Instantaneous Speed (every 500ms)
+        let speed = 0;
+        if (now - lastSpeedTime.current > 500 || current >= total) {
+             const bytesDiff = current - lastSpeedBytes.current;
+             const timeDiff = (now - lastSpeedTime.current) / 1000;
+             speed = timeDiff > 0 ? bytesDiff / timeDiff : 0;
+             
+             lastSpeedBytes.current = current;
+             lastSpeedTime.current = now;
+        }
         
         setState(prev => ({
             ...prev,
-            progress: percent,
-            transferSpeed: speed
+            transfers: prev.transfers.map(t => 
+                t.id === currentTransferIdRef.current 
+                ? { ...t, progress: percent, speed: speed > 0 ? speed : t.speed } 
+                : t
+            )
         }));
         lastProgressUpdate.current = now;
     }
@@ -332,7 +364,17 @@ export const useWebRTC = () => {
     // Reset buffer
     incomingBufferRef.current = [];
     incomingBytesRef.current = 0;
-    setState(prev => ({ ...prev, status: 'COMPLETED' }));
+    
+    setState(prev => ({ 
+        ...prev, 
+        status: 'CONNECTED',
+        transfers: prev.transfers.map(t => 
+            t.id === currentTransferIdRef.current 
+            ? { ...t, status: 'completed', progress: 100 } 
+            : t
+        )
+    }));
+    currentTransferIdRef.current = null;
   };
 
   // --- Exposed Actions ---
@@ -344,16 +386,32 @@ export const useWebRTC = () => {
         return;
     }
 
+    const newTransferId = Math.random().toString(36).substring(7);
+    currentTransferIdRef.current = newTransferId;
+
+    const newTransfer: TransferItem = {
+        id: newTransferId,
+        fileName: file.name,
+        fileSize: file.size,
+        type: 'sending',
+        status: 'transferring',
+        progress: 0,
+        speed: 0,
+        timestamp: Date.now()
+    };
+
     setState(prev => ({
         ...prev,
         status: 'TRANSFERRING',
-        transferType: 'sending',
-        fileName: file.name,
-        fileSize: file.size,
-        progress: 0
+        transfers: [newTransfer, ...prev.transfers]
     }));
 
     startTimeRef.current = Date.now();
+    lastSpeedTime.current = Date.now();
+    lastSpeedBytes.current = 0;
+
+    // Set low threshold to keep pipe full
+    channel.bufferedAmountLowThreshold = BUFFER_THRESHOLD / 2;
 
     // 1. Send Metadata
     const metadata = JSON.stringify({
@@ -374,8 +432,14 @@ export const useWebRTC = () => {
         
         try {
             // Backpressure check
-            while (channel.bufferedAmount > BUFFER_THRESHOLD) {
-                await new Promise(r => setTimeout(r, 10));
+            if (channel.bufferedAmount > BUFFER_THRESHOLD) {
+                await new Promise<void>(resolve => {
+                    const onLow = () => {
+                        channel.removeEventListener('bufferedamountlow', onLow);
+                        resolve();
+                    };
+                    channel.addEventListener('bufferedamountlow', onLow);
+                });
             }
             
             channel.send(buffer);
@@ -385,11 +449,29 @@ export const useWebRTC = () => {
             if (offset < file.size) {
                 readNextChunk();
             } else {
-                setState(prev => ({ ...prev, status: 'COMPLETED' }));
+                setState(prev => ({ 
+                    ...prev, 
+                    status: 'CONNECTED',
+                    transfers: prev.transfers.map(t => 
+                        t.id === currentTransferIdRef.current 
+                        ? { ...t, status: 'completed', progress: 100 } 
+                        : t
+                    )
+                }));
+                currentTransferIdRef.current = null;
             }
         } catch (err) {
             console.error('Send Error:', err);
-            setState(prev => ({ ...prev, status: 'ERROR', error: 'Transfer interrupted' }));
+            setState(prev => ({ 
+                ...prev, 
+                status: 'CONNECTED', // Go back to connected even on error
+                error: 'Transfer interrupted',
+                transfers: prev.transfers.map(t => 
+                    t.id === currentTransferIdRef.current 
+                    ? { ...t, status: 'error' } 
+                    : t
+                )
+            }));
         }
     };
 
@@ -442,12 +524,8 @@ export const useWebRTC = () => {
         error: null, 
         roomId: null, 
         isHost: false, 
-        progress: 0,
-        transferSpeed: 0,
-        fileName: null,
-        fileSize: null,
-        transferType: null,
-        peersCount: 0
+        peersCount: 0,
+        transfers: []
     }));
   }, []);
 

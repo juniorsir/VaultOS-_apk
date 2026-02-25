@@ -236,7 +236,7 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
   };
 
   return (
-    <div className="relative p-6 md:p-8 rounded-[40px] overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/20 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-slate-950/90 backdrop-blur-xl transition-all duration-500 glass-animate">
+    <div className="relative p-6 md:p-8 lg:p-12 rounded-[40px] overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/20 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-slate-950/90 backdrop-blur-xl transition-all duration-500 glass-animate">
       <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-violet-600/10 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 -mb-32 -ml-32 w-96 h-96 bg-emerald-600/5 rounded-full blur-[120px] pointer-events-none"></div>
       

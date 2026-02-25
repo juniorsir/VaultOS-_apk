@@ -1,28 +1,45 @@
 
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, useRef, memo, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   WifiIcon, ChainIcon, XMarkIcon, 
-  UploadIcon, DownloadIcon, ShieldCheckIcon, DocumentIcon, QrCodeIcon, ArrowPathIcon
+  UploadIcon, DownloadIcon, ShieldCheckIcon, DocumentIcon, QrCodeIcon, ArrowPathIcon,
+  PaperAirplaneIcon, ClockIcon
 } from './Icons';
 import ModernSpinner from './common/ModernSpinner';
 import QRScanner from './common/QRScanner';
-import { useWebRTC } from '../hooks/useWebRTC';
+import { useWebRTC, TransferItem } from '../hooks/useWebRTC';
 
 const AirDropPanel: React.FC = memo(() => {
   const { 
-    status, roomId, error, isHost, progress, transferSpeed, 
-    fileName, transferType, createSession, joinSession, sendFile, disconnect 
+    status, roomId, error, isHost, transfers, 
+    createSession, joinSession, sendFile, disconnect 
   } = useWebRTC();
 
   const [joinCode, setJoinCode] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom of transfer list
+  useEffect(() => {
+    if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [transfers.length]);
 
   const formatSpeed = (bytesPerSec: number) => {
     if (bytesPerSec > 1024 * 1024) return `${(bytesPerSec / (1024 * 1024)).toFixed(2)} MB/s`;
     return `${(bytesPerSec / 1024).toFixed(2)} KB/s`;
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,13 +51,17 @@ const AirDropPanel: React.FC = memo(() => {
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    if (status === 'CONNECTED' || status === 'TRANSFERRING') {
+        setIsDragging(true);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    if (status === 'CONNECTED' || status === 'TRANSFERRING') {
+        setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
@@ -53,7 +74,7 @@ const AirDropPanel: React.FC = memo(() => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    if ((status === 'CONNECTED' || status === 'TRANSFERRING') && e.dataTransfer.files && e.dataTransfer.files[0]) {
       sendFile(e.dataTransfer.files[0]);
     }
   };
@@ -61,24 +82,7 @@ const AirDropPanel: React.FC = memo(() => {
   const copyRoomId = async () => {
       if(roomId) {
         try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(roomId);
-          } else {
-            const textArea = document.createElement("textarea");
-            textArea.value = roomId;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-              document.execCommand('copy');
-            } catch (err) {
-              console.error('Fallback copy failed', err);
-            }
-            textArea.remove();
-          }
+          await navigator.clipboard.writeText(roomId);
         } catch (err) {
           console.error('Failed to copy', err);
         }
@@ -89,7 +93,6 @@ const AirDropPanel: React.FC = memo(() => {
       if (data) {
           setJoinCode(data);
           setShowScanner(false);
-          // Auto-join if code looks valid (6 chars)
           if (data.length === 6) {
               joinSession(data);
           }
@@ -115,7 +118,7 @@ const AirDropPanel: React.FC = memo(() => {
         )}
 
         {/* Header */}
-        <div className="relative z-10 flex items-center justify-between mb-10 border-b border-white/5 pb-6">
+        <div className="relative z-10 flex items-center justify-between mb-6 border-b border-white/5 pb-6">
             <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-2xl border transition-colors duration-500 ${
                     ['CONNECTED', 'TRANSFERRING'].includes(status) 
@@ -132,9 +135,7 @@ const AirDropPanel: React.FC = memo(() => {
                             {status === 'IDLE' && 'Ready to Connect'}
                             {(status === 'CREATING' || status === 'PAIRING') && 'Broadcasting Signal...'}
                             {status === 'CONNECTING' && 'Handshaking...'}
-                            {status === 'CONNECTED' && 'Secure Tunnel Active'}
-                            {status === 'TRANSFERRING' && 'Data Stream Active'}
-                            {status === 'COMPLETED' && 'Transfer Finalized'}
+                            {(status === 'CONNECTED' || status === 'TRANSFERRING') && 'Secure Session Active'}
                         </p>
                     </div>
                 </div>
@@ -152,11 +153,11 @@ const AirDropPanel: React.FC = memo(() => {
         </div>
 
         {/* Content Area */}
-        <div className="relative z-10 flex-1 flex flex-col items-center justify-center w-full">
+        <div className="relative z-10 flex-1 flex flex-col w-full overflow-hidden">
             
             {/* Error Banner */}
             {error && (
-                <div className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950/40 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 animate-in fade-in slide-in-from-top-2 backdrop-blur-md shadow-lg shadow-red-900/10">
+                <div className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950/40 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 animate-in fade-in slide-in-from-top-2 backdrop-blur-md shadow-lg shadow-red-900/10 z-50">
                     <div className="flex items-center justify-center gap-2 font-bold mb-1">
                         <XMarkIcon className="w-4 h-4" /> Connection Error
                     </div>
@@ -164,9 +165,9 @@ const AirDropPanel: React.FC = memo(() => {
                 </div>
             )}
 
-            {/* IDLE STATE: Selection Cards */}
+            {/* IDLE STATE */}
             {status === 'IDLE' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full h-full max-w-4xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full h-full max-w-4xl mx-auto my-auto">
                     {/* SEND CARD */}
                     <button 
                         onClick={createSession}
@@ -228,162 +229,64 @@ const AirDropPanel: React.FC = memo(() => {
                 </div>
             )}
 
-            {/* CREATING STATE: Skeleton Loading (Construction Effect - Slow & Responsive) */}
-            {status === 'CREATING' && !roomId && (
-                <div className="flex flex-col items-center justify-center w-full py-4 md:py-8 animate-in fade-in duration-700">
-                    {/* Skeleton Card */}
-                    <div className="relative w-full max-w-[300px] sm:max-w-[340px] bg-white p-6 sm:p-8 rounded-[2rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20 opacity-90 transition-all duration-500">
-                        {/* Shimmer Overlay - Slower */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 z-20 pointer-events-none rounded-[2rem] animate-[pulse_3s_ease-in-out_infinite]"></div>
-
-                        {/* Skeleton Header */}
-                        <div className="w-full flex items-center justify-between border-b border-slate-100 pb-4 z-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-100 animate-pulse duration-[2000ms]"></div>
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="h-2 w-12 bg-slate-100 rounded animate-pulse duration-[2000ms] delay-100"></div>
-                                    <div className="h-2 w-16 bg-slate-100 rounded animate-pulse duration-[2000ms] delay-200"></div>
-                                </div>
-                            </div>
-                            <div className="w-12 h-5 rounded bg-slate-100 animate-pulse duration-[2000ms]"></div>
+            {/* CREATING/PAIRING STATE */}
+            {(status === 'CREATING' || status === 'PAIRING') && (
+                <div className="flex flex-col items-center justify-center w-full h-full animate-in fade-in duration-500">
+                    {status === 'CREATING' && !roomId ? (
+                        <div className="flex flex-col items-center gap-4">
+                            <ModernSpinner size="lg" color="#8b5cf6" />
+                            <p className="text-slate-400 font-mono text-sm">Initializing Secure Room...</p>
                         </div>
-
-                        {/* Construction QR Area - Responsive Size */}
-                        <div className="relative w-[200px] h-[200px] sm:w-[220px] sm:h-[220px] p-2 flex items-center justify-center">
-                             
-                             {/* The Grid Construction */}
-                             <div className="w-full h-full grid grid-cols-12 grid-rows-12 gap-0.5 sm:gap-1 relative z-0">
-                                {Array.from({ length: 144 }).map((_, i) => {
-                                    const r = Math.floor(i / 12);
-                                    const c = i % 12;
-                                    const isCorner = (r < 4 && c < 4) || (r < 4 && c > 7) || (r > 7 && c < 4);
-                                    
-                                    if (isCorner) return <div key={i}></div>;
-
-                                    return (
-                                        <div 
-                                            key={i} 
-                                            className="bg-slate-800 rounded-[0.5px]"
-                                            style={{ 
-                                                opacity: Math.random() > 0.6 ? 0 : 0.1,
-                                                // Much slower animation (2-4s)
-                                                animation: `pulse ${2 + Math.random() * 2}s cubic-bezier(0.4, 0, 0.6, 1) infinite` 
-                                            }}
-                                        ></div>
-                                    );
-                                })}
-                             </div>
-
-                             {/* Finder Patterns (Constructing) - Slower Animations */}
-                             {/* Top Left */}
-                             <div className="absolute top-2 left-2 w-[55px] h-[55px] sm:w-[65px] sm:h-[65px] border-4 border-slate-800 rounded-lg flex items-center justify-center animate-[pulse_3s_infinite]">
-                                 <div className="w-3/5 h-3/5 bg-slate-800 rounded-md"></div>
-                             </div>
-                             {/* Top Right */}
-                             <div className="absolute top-2 right-2 w-[55px] h-[55px] sm:w-[65px] sm:h-[65px] border-4 border-slate-800 rounded-lg flex items-center justify-center animate-[pulse_3s_infinite] delay-150">
-                                 <div className="w-3/5 h-3/5 bg-slate-800 rounded-md"></div>
-                             </div>
-                             {/* Bottom Left */}
-                             <div className="absolute bottom-2 left-2 w-[55px] h-[55px] sm:w-[65px] sm:h-[65px] border-4 border-slate-800 rounded-lg flex items-center justify-center animate-[pulse_3s_infinite] delay-300">
-                                 <div className="w-3/5 h-3/5 bg-slate-800 rounded-md"></div>
-                             </div>
-
-                             {/* Center Logo - Slower bounce */}
-                             <div className="absolute inset-0 flex items-center justify-center z-20">
-                                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-2xl flex items-center justify-center border-4 border-white shadow-lg animate-[bounce_2s_infinite]">
-                                     <ChainIcon className="w-6 h-6 sm:w-8 sm:h-8 text-slate-300" />
-                                 </div>
-                             </div>
-                        </div>
-
-                        {/* Skeleton Footer */}
-                        <div className="w-full flex flex-col items-center gap-2 border-t border-slate-100 pt-4 z-0">
-                            <div className="h-2 w-16 bg-slate-100 rounded animate-pulse duration-[2000ms]"></div>
-                            <div className="h-8 w-32 bg-slate-100 rounded-lg animate-pulse duration-[2000ms] delay-100"></div>
-                        </div>
-                    </div>
-                    
-                    <div className="mt-8 flex flex-col items-center gap-3">
-                        <div className="h-3 w-32 sm:w-40 bg-slate-700/50 rounded animate-pulse duration-[2000ms]"></div>
-                        <div className="flex gap-1.5">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-[bounce_1.5s_infinite]"></span>
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-[bounce_1.5s_infinite] delay-200"></span>
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-[bounce_1.5s_infinite] delay-400"></span>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* PAIRING STATE: Show QR */}
-            {(status === 'PAIRING' || (status === 'CREATING' && roomId)) && isHost && roomId && (
-                <div className="flex flex-col items-center animate-in fade-in duration-500">
-                    
-                    {/* Branded Identity Card */}
-                    <div className="relative group cursor-pointer mb-8" onClick={copyRoomId}>
-                        {/* Glow Effect */}
-                        <div className="absolute -inset-1 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[2.5rem] blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
-                        
-                        {/* Card Body */}
-                        <div className="relative bg-white p-8 rounded-[2.2rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20">
-                            
-                            {/* Card Header */}
-                            <div className="w-full flex items-center justify-between border-b border-slate-100 pb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-violet-400">
-                                        <WifiIcon className="w-4 h-4" />
+                    ) : (
+                        <div className="flex flex-col items-center">
+                            <div className="relative group cursor-pointer mb-8" onClick={copyRoomId}>
+                                <div className="absolute -inset-1 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[2.5rem] blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
+                                <div className="relative bg-white p-8 rounded-[2.2rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20">
+                                    <div className="w-full flex items-center justify-between border-b border-slate-100 pb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-violet-400">
+                                                <WifiIcon className="w-4 h-4" />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none">Vault</span>
+                                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest leading-none">ID Card</span>
+                                            </div>
+                                        </div>
+                                        <div className="px-2 py-1 rounded bg-slate-100 text-[10px] font-mono text-slate-500 font-bold tracking-wider">DIRECT</div>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none">Vault</span>
-                                        <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest leading-none">ID Card</span>
-                                    </div>
-                                </div>
-                                <div className="px-2 py-1 rounded bg-slate-100 text-[10px] font-mono text-slate-500 font-bold tracking-wider">
-                                    DIRECT
-                                </div>
-                            </div>
-
-                            {/* QR Code */}
-                            <div className="relative p-2 bg-white rounded-xl">
-                                <QRCodeSVG 
-                                    value={roomId} 
-                                    size={220}
-                                    level="H"
-                                    fgColor="#0f172a"
-                                    bgColor="#ffffff"
-                                />
-                                {/* Center Icon Badge */}
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)] border-4 border-white">
-                                        <div className="w-full h-full bg-slate-900 rounded-xl flex items-center justify-center">
-                                            <ChainIcon className="w-8 h-8 text-white" />
+                                    <div className="relative p-2 bg-white rounded-xl">
+                                        <QRCodeSVG value={roomId || ''} size={220} level="H" fgColor="#0f172a" bgColor="#ffffff" />
+                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)] border-4 border-white">
+                                                <div className="w-full h-full bg-slate-900 rounded-xl flex items-center justify-center">
+                                                    <ChainIcon className="w-8 h-8 text-white" />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div className="w-full text-center border-t border-slate-100 pt-4">
+                                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mb-1.5">Session ID</p>
+                                        <div className="text-3xl font-black text-slate-900 font-mono tracking-widest bg-slate-100/50 rounded-lg py-1">{roomId}</div>
+                                    </div>
                                 </div>
                             </div>
-
-                            {/* Card Footer */}
-                            <div className="w-full text-center border-t border-slate-100 pt-4">
-                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mb-1.5">Session ID</p>
-                                <div className="text-3xl font-black text-slate-900 font-mono tracking-widest bg-slate-100/50 rounded-lg py-1">{roomId}</div>
+                            <div className="text-center space-y-4">
+                                <p className="text-slate-400 text-sm">Scan with peer device to connect</p>
+                                <div className="flex items-center justify-center gap-3 px-5 py-2 rounded-full bg-slate-800/50 border border-white/5 w-fit mx-auto">
+                                    <ModernSpinner size="sm" color="#8b5cf6" />
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Waiting for peer...</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div className="text-center space-y-4">
-                        <p className="text-slate-400 text-sm">Scan with peer device to connect</p>
-                        <div className="flex items-center justify-center gap-3 px-5 py-2 rounded-full bg-slate-800/50 border border-white/5 w-fit mx-auto">
-                            <ModernSpinner size="sm" color="#8b5cf6" />
-                            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Waiting for peer...</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
             )}
 
+            {/* CONNECTING STATE */}
             {status === 'CONNECTING' && (
-                <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-300">
+                <div className="flex flex-col items-center justify-center h-full gap-8 animate-in fade-in zoom-in duration-300">
                     <div className="relative">
                         <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-ping duration-1000"></div>
-                        <div className="absolute inset-0 bg-violet-500/10 rounded-full animate-ping duration-[1.5s] delay-150"></div>
                         <div className="relative p-8 bg-slate-900 rounded-full border border-violet-500/50 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
                             <ModernSpinner size="xl" color="#a78bfa" className="absolute inset-0 scale-150 opacity-20" />
                             <ChainIcon className="w-12 h-12 text-violet-400 animate-pulse relative z-10" />
@@ -396,124 +299,116 @@ const AirDropPanel: React.FC = memo(() => {
                 </div>
             )}
 
-            {/* CONNECTED / TRANSFERRING STATE */}
-            {['CONNECTED', 'TRANSFERRING', 'COMPLETED'].includes(status) && (
-                <div className="w-full max-w-lg flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-300">
+            {/* CONNECTED / SESSION VIEW */}
+            {(status === 'CONNECTED' || status === 'TRANSFERRING' || status === 'COMPLETED') && (
+                <div className="flex flex-col h-full gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     
-                    {/* Status Pill */}
-                    <div className="flex items-center gap-3 px-5 py-2 rounded-full bg-slate-800/50 border border-white/10 backdrop-blur-md">
-                        <div className="relative flex h-3 w-3">
-                            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${status === 'TRANSFERRING' ? 'bg-violet-400' : 'bg-emerald-400'}`}></span>
-                            <span className={`relative inline-flex rounded-full h-3 w-3 ${status === 'TRANSFERRING' ? 'bg-violet-500' : 'bg-emerald-500'}`}></span>
-                        </div>
-                        <span className="text-xs font-bold text-white uppercase tracking-wider">
-                            {status === 'CONNECTED' ? 'Peer Connected' : status === 'TRANSFERRING' ? 'Transferring Data' : 'Transfer Complete'}
-                        </span>
-                    </div>
-
-                    {!transferType && status !== 'COMPLETED' ? (
-                        <div className="w-full animate-in slide-in-from-bottom-4 duration-500">
-                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                             <div 
-                                role="button"
-                                tabIndex={0}
-                                onClick={() => fileInputRef.current?.click()}
-                                onDragEnter={handleDragEnter}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                                className={`w-full h-56 rounded-[30px] border-2 border-dashed flex flex-col items-center justify-center gap-5 transition-all duration-300 group relative overflow-hidden cursor-pointer ${
-                                    isDragging 
-                                        ? 'border-violet-500 bg-violet-500/10 scale-[1.02]' 
-                                        : 'border-slate-700 hover:border-violet-500 hover:bg-violet-500/5'
-                                }`}
-                             >
-                                <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent transition-opacity duration-500 ${isDragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}></div>
-                                
-                                <div className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 shadow-xl ${
-                                    isDragging 
-                                        ? 'bg-violet-500 text-white scale-110 shadow-violet-500/30' 
-                                        : 'bg-slate-800 text-slate-400 group-hover:bg-violet-500 group-hover:text-white group-hover:scale-110 group-hover:shadow-violet-500/30'
-                                }`}>
-                                    <UploadIcon className={`w-8 h-8 ${isDragging ? 'animate-bounce' : ''}`} />
-                                </div>
-                                <div className="relative z-10 text-center">
-                                    <h3 className={`text-xl font-bold mb-1 transition-colors ${isDragging ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
-                                        {isDragging ? 'Drop File to Send' : 'Click or Drag File to Send'}
-                                    </h3>
-                                    <p className={`text-sm transition-colors ${isDragging ? 'text-violet-200' : 'text-slate-500 group-hover:text-violet-200/70'}`}>
-                                        Secure Direct Tunnel Ready
-                                    </p>
-                                </div>
-                             </div>
-                        </div>
-                    ) : (
-                        <div className="w-full p-1 rounded-[30px] bg-gradient-to-br from-slate-700/50 to-slate-800/50 border border-white/10 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-300">
-                            <div className="bg-slate-900/90 rounded-[26px] p-6 relative overflow-hidden">
-                                {status === 'COMPLETED' && (
-                                    <div className="absolute inset-0 bg-emerald-900/10 z-0 flex items-center justify-center">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/20 to-transparent"></div>
-                                    </div>
-                                )}
-                                
-                                <div className="relative z-10 flex items-center justify-between mb-8">
-                                    <div className="flex items-center gap-5">
-                                        <div className={`p-4 rounded-2xl shadow-lg transition-all duration-500 ${status === 'COMPLETED' ? 'bg-emerald-500 text-white rotate-0' : 'bg-slate-800 text-slate-400 rotate-3'}`}>
-                                            {status === 'COMPLETED' ? (
-                                                <ShieldCheckIcon className="w-8 h-8" />
-                                            ) : (
-                                                <DocumentIcon className="w-8 h-8" />
-                                            )}
+                    {/* Transfer History List */}
+                    <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pr-2 custom-scrollbar">
+                        {transfers.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-500 opacity-50">
+                                <PaperAirplaneIcon className="w-12 h-12 mb-3" />
+                                <p className="text-sm font-medium">Session Ready</p>
+                                <p className="text-xs">Send a file to start the conversation</p>
+                            </div>
+                        ) : (
+                            transfers.map((transfer) => (
+                                <div 
+                                    key={transfer.id} 
+                                    className={`relative p-4 rounded-2xl border transition-all duration-300 ${
+                                        transfer.status === 'transferring' 
+                                        ? 'bg-slate-800/80 border-violet-500/30 shadow-lg shadow-violet-900/10' 
+                                        : 'bg-slate-800/40 border-white/5'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-xl ${
+                                            transfer.type === 'sending' 
+                                            ? 'bg-violet-500/10 text-violet-400' 
+                                            : 'bg-emerald-500/10 text-emerald-400'
+                                        }`}>
+                                            {transfer.type === 'sending' ? <UploadIcon className="w-6 h-6" /> : <DownloadIcon className="w-6 h-6" />}
                                         </div>
-                                        <div className="min-w-0">
-                                            <div className="text-lg font-bold text-white truncate max-w-[200px]" title={fileName || ''}>{fileName}</div>
-                                            <div className="text-xs text-slate-500 font-mono mt-1 flex items-center gap-2">
-                                                <span className={`w-2 h-2 rounded-full ${status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-violet-500 animate-pulse'}`}></span>
-                                                {status === 'COMPLETED' ? (
-                                                    <span className="text-emerald-400 font-bold">SUCCESSFULLY VERIFIED</span>
-                                                ) : (
-                                                    <>
-                                                        <span className="uppercase">{transferType === 'sending' ? 'Uploading' : 'Downloading'}</span>
-                                                        <span className="text-slate-600">|</span>
-                                                        <span className="text-slate-300">{formatSpeed(transferSpeed)}</span>
-                                                    </>
-                                                )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="text-sm font-bold text-white truncate pr-4" title={transfer.fileName}>
+                                                    {transfer.fileName}
+                                                </h4>
+                                                <span className="text-[10px] font-mono text-slate-500 whitespace-nowrap">
+                                                    {formatBytes(transfer.fileSize)}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Progress Bar */}
+                                            <div className="mt-3 h-1.5 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                                                <div 
+                                                    className={`h-full transition-all duration-300 ${
+                                                        transfer.status === 'completed' 
+                                                        ? 'bg-emerald-500' 
+                                                        : transfer.status === 'error' 
+                                                        ? 'bg-red-500' 
+                                                        : 'bg-violet-500'
+                                                    }`}
+                                                    style={{ width: `${transfer.progress}%` }}
+                                                ></div>
+                                            </div>
+
+                                            <div className="flex justify-between items-center mt-2">
+                                                <div className="flex items-center gap-2">
+                                                    {transfer.status === 'transferring' && (
+                                                        <span className="text-[10px] font-mono text-violet-300 animate-pulse">
+                                                            {formatSpeed(transfer.speed)}
+                                                        </span>
+                                                    )}
+                                                    {transfer.status === 'completed' && (
+                                                        <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1">
+                                                            <ShieldCheckIcon className="w-3 h-3" /> Completed
+                                                        </span>
+                                                    )}
+                                                    {transfer.status === 'error' && (
+                                                        <span className="text-[10px] font-bold text-red-400 flex items-center gap-1">
+                                                            <XMarkIcon className="w-3 h-3" /> Failed
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-[10px] text-slate-600">
+                                                    {new Date(transfer.timestamp).toLocaleTimeString()}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 font-mono tracking-tighter">
-                                            {Math.round(progress)}%
-                                        </div>
-                                    </div>
                                 </div>
-                                
-                                <div className="relative z-10 h-4 w-full bg-slate-950 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                    <div 
-                                        className={`h-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] relative overflow-hidden ${status === 'COMPLETED' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-gradient-to-r from-violet-600 to-fuchsia-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]'}`}
-                                        style={{ width: `${progress}%` }}
-                                    >
-                                        {status === 'TRANSFERRING' && (
-                                            <div className="absolute inset-0 bg-white/30 animate-[shimmer_1.5s_infinite] skew-x-12"></div>
-                                        )}
-                                    </div>
-                                </div>
+                            ))
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
 
-                                {status === 'COMPLETED' && (
-                                    <button 
-                                        onClick={() => {
-                                            disconnect(); 
-                                        }}
-                                        className="liquid-btn relative z-10 mt-8 w-full py-4 bg-white text-slate-950 rounded-xl font-bold hover:bg-emerald-50 transition-all shadow-lg hover:shadow-white/10 active:scale-[0.98] uppercase tracking-wider text-sm flex items-center justify-center gap-2 group"
-                                        style={{ '--liquid-color': 'rgba(16, 185, 129, 0.2)' } as React.CSSProperties}
-                                    >
-                                        <ArrowPathIcon className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
-                                        Start New Transfer
-                                    </button>
-                                )}
+                    {/* Input Area */}
+                    <div className="mt-auto pt-4 border-t border-white/5">
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                        <div 
+                            onClick={() => fileInputRef.current?.click()}
+                            onDragEnter={handleDragEnter}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            className={`relative w-full h-24 rounded-2xl border-2 border-dashed flex items-center justify-center gap-4 transition-all duration-200 cursor-pointer group overflow-hidden ${
+                                isDragging 
+                                ? 'border-violet-500 bg-violet-500/10' 
+                                : 'border-slate-700/50 bg-slate-800/30 hover:bg-slate-800/50 hover:border-violet-500/30'
+                            }`}
+                        >
+                            <div className={`p-2 rounded-full transition-all ${isDragging ? 'bg-violet-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-violet-500/20 group-hover:text-violet-300'}`}>
+                                <UploadIcon className="w-6 h-6" />
+                            </div>
+                            <div className="text-left">
+                                <p className={`text-sm font-bold transition-colors ${isDragging ? 'text-violet-300' : 'text-slate-300 group-hover:text-white'}`}>
+                                    {isDragging ? 'Drop to Send' : 'Send New File'}
+                                </p>
+                                <p className="text-xs text-slate-500">Click or drag file here</p>
                             </div>
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
         </div>

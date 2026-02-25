@@ -296,83 +296,54 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   };
 
   return (
-    <div className="w-full h-auto md:h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 lg:p-12 animate-in fade-in duration-300">
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onClick={onClose}></div>
       
-      {/* Delete Confirmation Modal Overlay */}
-      {showDeleteConfirm && (
-        <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300 rounded-[30px]">
-           <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200">
-              <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-4 mx-auto">
-                 <TrashIcon className="w-6 h-6 text-rose-500" />
-              </div>
-              <h3 className="text-lg font-bold text-white text-center mb-2">Permanently Delete?</h3>
-              <p className="text-sm text-slate-400 text-center mb-6 leading-relaxed">
-                 This action cannot be undone. The file will be wiped from both the database and secure cloud storage immediately.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                 <button 
-                   onClick={() => setShowDeleteConfirm(false)}
-                   className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
-                 >
-                    Cancel
-                 </button>
-                 <button 
-                   onClick={() => {
-                      setShowDeleteConfirm(false);
-                      onDelete();
-                   }}
-                   className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition-colors shadow-lg shadow-rose-900/20"
-                 >
-                    Confirm Kill
-                 </button>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {/* Header / Navigation Bar */}
-      <div className="flex items-center justify-between mb-6 px-1">
-         <div className="flex items-center gap-3">
-            <button 
-                onClick={onClose}
-                className="p-2 rounded-full bg-slate-800 hover:bg-white text-slate-400 hover:text-slate-900 transition-colors group"
-                title="Back to Vault"
-            >
-                <XMarkIcon className="w-5 h-5 transform rotate-45 group-hover:rotate-0 transition-transform duration-300" />
-            </button>
-            <h2 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
-                <span className="text-violet-500">/</span> INSPECTOR
-            </h2>
-            {forensicReport && (
-                <div className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${forensicReport.is_ai ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
-                    {forensicReport.is_ai ? <ShieldExclamationIcon className="w-3 h-3" /> : <ShieldIcon className="w-3 h-3" />}
-                    <span>{forensicReport.is_ai ? 'AI DETECTED' : 'HUMAN VERIFIED'}</span>
-                </div>
-            )}
-         </div>
-         
-         <div className="flex items-center gap-3">
-             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/50 border border-white/5 shadow-inner transition-all">
-                <div className="flex gap-0.5 h-2.5 items-end">
-                    <div className="w-0.5 h-1 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <div className="w-0.5 h-1.5 bg-emerald-500 rounded-full animate-pulse delay-75"></div>
-                    <div className="w-0.5 h-2.5 bg-emerald-500 rounded-full animate-pulse delay-150"></div>
-                </div>
-                <span className="text-[10px] font-mono text-emerald-400 font-bold">{latency}ms</span>
-             </div>
-
-             <div className="hidden md:flex items-center px-3 py-1 rounded-full bg-slate-800/50 border border-white/5 text-[10px] font-mono text-slate-500">
-                SECURE_VIEWER_v2.0
-             </div>
-         </div>
-      </div>
-
-      {/* Main Content Card */}
-      <div className="relative w-full h-auto md:flex-1 md:min-h-[37.5rem] bg-[#0f172a] rounded-[30px] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-white/10 ring-1 ring-white/5 glass-animate">
+      <div className="relative w-full max-w-6xl lg:max-w-7xl bg-slate-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row md:min-h-[37.5rem] lg:min-h-[45rem] animate-in zoom-in-95 duration-300">
         
-        {/* LEFT: Preview Area */}
+        {/* Delete Confirmation Modal Overlay */}
+        {showDeleteConfirm && (
+            <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
+               <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200">
+                  <div className="w-12 h-12 rounded-full bg-rose-500/10 flex items-center justify-center mb-4 mx-auto">
+                     <TrashIcon className="w-6 h-6 text-rose-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-white text-center mb-2">Permanently Delete?</h3>
+                  <p className="text-sm text-slate-400 text-center mb-6 leading-relaxed">
+                     This action cannot be undone. The file will be wiped from both the database and secure cloud storage immediately.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                     <button 
+                       onClick={() => setShowDeleteConfirm(false)}
+                       className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
+                     >
+                        Cancel
+                     </button>
+                     <button 
+                       onClick={() => {
+                          setShowDeleteConfirm(false);
+                          onDelete();
+                       }}
+                       className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition-colors shadow-lg shadow-rose-900/20"
+                     >
+                        Confirm Kill
+                     </button>
+                  </div>
+               </div>
+            </div>
+        )}
+
+        {/* Close Button */}
+        <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/50 hover:bg-white/20 text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10"
+        >
+            <XMarkIcon className="w-6 h-6" />
+        </button>
+
+        {/* Left Column: Media Preview */}
         <div 
-            className="w-full md:w-2/3 bg-black/40 relative flex flex-col justify-center items-center min-h-[12.5rem] md:min-h-full border-b md:border-b-0 md:border-r border-white/5 overflow-hidden group"
+            className="relative w-full md:w-2/3 bg-black flex items-center justify-center overflow-hidden group border-b md:border-b-0 md:border-r border-white/5"
             onContextMenu={(e) => e.preventDefault()}
         >
             
@@ -791,10 +762,10 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                         </div>
                     ) : (
                         <>
-                            <h2 className="text-xl font-bold text-white leading-tight break-words mb-3">
+                            <h2 className="text-xl lg:text-3xl font-bold text-white leading-tight break-words mb-3 lg:mb-5">
                                 {fileInfo?.filename || 'Unknown File'}
                             </h2>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-400 font-mono">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs lg:text-sm text-slate-400 font-mono">
                                 <span className="flex items-center gap-1.5 bg-slate-800/50 px-2 py-1 rounded">
                                     {formatBytes(fileInfo?.size || 0)}
                                 </span>
@@ -807,30 +778,30 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 </div>
 
                 {/* Actions Bar - Modernized */}
-                <div className="p-5 bg-slate-900/50 rounded-[24px] border border-white/5 space-y-4 shadow-xl backdrop-blur-md">
+                <div className="p-5 lg:p-6 bg-slate-900/50 rounded-[24px] border border-white/5 space-y-4 lg:space-y-6 shadow-xl backdrop-blur-md">
                     <button 
                         onClick={onDownload}
-                        className="liquid-btn w-full group relative flex items-center justify-center gap-3 h-14 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white rounded-2xl font-semibold text-sm transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] border-t border-white/10 hover:border-white/20 active:scale-[0.98]"
+                        className="liquid-btn w-full group relative flex items-center justify-center gap-3 h-14 lg:h-16 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white rounded-2xl font-semibold text-sm lg:text-base transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] border-t border-white/10 hover:border-white/20 active:scale-[0.98]"
                         style={{ '--liquid-color': 'rgba(255, 255, 255, 0.1)' } as React.CSSProperties}
                     >
                         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                        <DownloadIcon className="w-5 h-5 text-slate-300 group-hover:text-white transition-colors relative z-10" /> 
+                        <DownloadIcon className="w-5 h-5 lg:w-6 lg:h-6 text-slate-300 group-hover:text-white transition-colors relative z-10" /> 
                         <span className="relative z-10 tracking-wide">Download File</span>
                     </button>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 lg:gap-6">
                         <button 
                             onClick={handleCopyLink}
-                            className="flex items-center justify-center gap-2 h-12 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl border border-white/5 hover:border-white/10 transition-all duration-300 text-xs font-semibold group backdrop-blur-sm"
+                            className="flex items-center justify-center gap-2 h-12 lg:h-14 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl border border-white/5 hover:border-white/10 transition-all duration-300 text-xs lg:text-sm font-semibold group backdrop-blur-sm"
                         >
-                            <ChainIcon className={`w-4 h-4 transition-colors ${shareCopied ? 'text-emerald-400' : 'group-hover:text-indigo-400'}`} />
+                            <ChainIcon className={`w-4 h-4 lg:w-5 lg:h-5 transition-colors ${shareCopied ? 'text-emerald-400' : 'group-hover:text-indigo-400'}`} />
                             <span>{shareCopied ? 'Copied' : 'Share Link'}</span>
                         </button>
                         <button 
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="flex items-center justify-center gap-2 h-12 bg-slate-800/40 hover:bg-rose-950/20 text-slate-400 hover:text-rose-400 rounded-2xl border border-white/5 hover:border-rose-500/20 transition-all duration-300 text-xs font-semibold group backdrop-blur-sm"
+                            className="flex items-center justify-center gap-2 h-12 lg:h-14 bg-slate-800/40 hover:bg-rose-950/20 text-slate-400 hover:text-rose-400 rounded-2xl border border-white/5 hover:border-rose-500/20 transition-all duration-300 text-xs lg:text-sm font-semibold group backdrop-blur-sm"
                         >
-                            <TrashIcon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                            <TrashIcon className="w-4 h-4 lg:w-5 lg:h-5 group-hover:scale-110 transition-transform" />
                             <span>Delete</span>
                         </button>
                     </div>
@@ -842,28 +813,28 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 {forensicReport ? (
                     <div className="space-y-4 pb-4">
                          <div className="flex items-center justify-between">
-                            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                <ActivityIcon className="w-3 h-3 text-violet-400" />
+                            <h3 className="text-[10px] lg:text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <ActivityIcon className="w-3 h-3 lg:w-4 lg:h-4 text-violet-400" />
                                 Forensic Analysis
                             </h3>
                          </div>
 
                          {/* Status Card */}
-                         <div className={`p-4 rounded-xl border relative overflow-hidden transition-all ${forensicReport.is_ai ? 'bg-amber-900/10 border-amber-500/20' : 'bg-emerald-900/10 border-emerald-500/20'}`}>
+                         <div className={`p-4 lg:p-5 rounded-xl border relative overflow-hidden transition-all ${forensicReport.is_ai ? 'bg-amber-900/10 border-amber-500/20' : 'bg-emerald-900/10 border-emerald-500/20'}`}>
                              {/* Background Pattern */}
                              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '8px 8px', color: forensicReport.is_ai ? '#fbbf24' : '#34d399' }}></div>
                              
                              <div className="relative z-10 flex items-start gap-4">
                                  {forensicReport.is_ai ? (
-                                    <ShieldExclamationIcon className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                                    <ShieldExclamationIcon className="w-5 h-5 lg:w-6 lg:h-6 text-amber-400 shrink-0 mt-0.5" />
                                  ) : (
-                                    <ShieldIcon className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                                    <ShieldIcon className="w-5 h-5 lg:w-6 lg:h-6 text-emerald-400 shrink-0 mt-0.5" />
                                  )}
                                  <div>
-                                     <div className={`text-sm font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                     <div className={`text-sm lg:text-base font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
                                          {forensicReport.is_ai ? 'Synthetic Signature' : 'Organic Signature'}
                                      </div>
-                                     <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                                     <p className="text-xs lg:text-sm text-slate-400 mt-1 leading-relaxed">
                                          {forensicReport.is_ai 
                                             ? 'Generative AI artifacts detected. Recommend scrubbing metadata.'
                                             : 'No generative patterns found. Content appears human-authored.'}
@@ -873,16 +844,16 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                          </div>
 
                          {/* Details Grid: Provider & Verdict */}
-                         <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2.5 bg-slate-800/40 rounded-lg border border-white/5">
-                                <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Provider</div>
-                                <div className="text-xs font-mono text-slate-300 truncate" title={forensicReport.provider}>
+                         <div className="grid grid-cols-2 gap-2 lg:gap-3">
+                            <div className="p-2.5 lg:p-3.5 bg-slate-800/40 rounded-lg border border-white/5">
+                                <div className="text-[9px] lg:text-[10px] text-slate-500 uppercase tracking-wider mb-1">Provider</div>
+                                <div className="text-xs lg:text-sm font-mono text-slate-300 truncate" title={forensicReport.provider}>
                                     {forensicReport.provider || 'System_Default'}
                                 </div>
                             </div>
-                            <div className="p-2.5 bg-slate-800/40 rounded-lg border border-white/5">
-                                <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Verdict</div>
-                                <div className={`text-xs font-mono font-bold uppercase ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
+                            <div className="p-2.5 lg:p-3.5 bg-slate-800/40 rounded-lg border border-white/5">
+                                <div className="text-[9px] lg:text-[10px] text-slate-500 uppercase tracking-wider mb-1">Verdict</div>
+                                <div className={`text-xs lg:text-sm font-mono font-bold uppercase ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
                                     {forensicReport.verdict || (forensicReport.is_ai ? 'SYNTHETIC' : 'AUTHENTIC')}
                                 </div>
                             </div>
@@ -892,12 +863,12 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                          {typeof forensicReport.confidence === 'number' && (
                              <div className="mt-1 mb-2">
                                  <div className="flex justify-between items-end mb-1.5">
-                                    <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">Confidence Score</span>
-                                    <span className={`text-[10px] font-mono font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                    <span className="text-[9px] lg:text-[10px] text-slate-500 uppercase tracking-wider font-bold">Confidence Score</span>
+                                    <span className={`text-[10px] lg:text-xs font-mono font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
                                         {forensicReport.confidence}%
                                     </span>
                                  </div>
-                                 <div className="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5">
+                                 <div className="h-1.5 lg:h-2 w-full bg-slate-800/50 rounded-full overflow-hidden border border-white/5">
                                      <div 
                                         className={`h-full rounded-full transition-all duration-1000 ease-out ${
                                             forensicReport.is_ai 
@@ -912,11 +883,11 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
                          {/* Analysis Vectors (Details List) */}
                          {forensicReport.details && forensicReport.details.length > 0 && (
-                             <div className="bg-slate-950/30 rounded-xl p-3 border border-white/5">
-                                 <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-2">Analysis Vectors</div>
+                             <div className="bg-slate-950/30 rounded-xl p-3 lg:p-4 border border-white/5">
+                                 <div className="text-[10px] lg:text-xs text-slate-500 uppercase tracking-wider mb-2">Analysis Vectors</div>
                                  <div className="space-y-2">
                                      {forensicReport.details.map((detail, idx) => (
-                                         <div key={idx} className="flex items-start gap-2 text-xs text-slate-400">
+                                         <div key={idx} className="flex items-start gap-2 text-xs lg:text-sm text-slate-400">
                                              <div className={`mt-1.5 w-1 h-1 rounded-full shrink-0 ${forensicReport.is_ai ? 'bg-amber-500' : 'bg-emerald-500'}`}></div>
                                              <span className="leading-relaxed">{detail}</span>
                                          </div>
