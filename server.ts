@@ -3,6 +3,8 @@ import { createServer as createViteServer } from "vite";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 async function startServer() {
   const app = express();
@@ -85,6 +87,13 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
+  } else {
+    // Production static file serving
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    app.use(express.static(path.resolve(__dirname, "dist")));
+    app.get("*", (req, res) => {
+      res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+    });
   }
 
   httpServer.listen(PORT, "0.0.0.0", () => {

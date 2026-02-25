@@ -1,6 +1,6 @@
 
 import React, { createContext, useRef, useState, useCallback, useEffect, ReactNode } from 'react';
-import { SecureApiClient, API_BASE_URL } from '../api/secureClient';
+import { SecureApiClient, API_BASE_URL } from '@/lib/secureClient';
 import { LogEntry, LogType, ForensicReport, FileInfo } from '../types';
 
 export interface VaultContextType {
