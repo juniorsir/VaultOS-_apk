@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import axios, { AxiosError } from 'axios';
 import { useVault } from './useVault';
 import { ForensicReport, FileInfo } from '../types';
-import { API_BASE_URL } from '@/lib/secureClient';
+import { API_BASE_URL } from '../api/secureClient';
 
 interface UseSecureClientProps {
   onNotify?: (message: string, type: 'success' | 'error' | 'info' | 'warn') => void;

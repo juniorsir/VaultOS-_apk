@@ -1,5 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/pair/create", "destination": "/api/pair/create" }
-  ]
-}
