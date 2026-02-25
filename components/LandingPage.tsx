@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   VaultIcon, 
   ShieldCheckIcon, 
@@ -9,198 +9,311 @@ import {
   GitHubIcon,
   TwitterIcon,
   DiscordIcon,
-  TerminalIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  GlobeIcon,
+  CpuIcon,
+  ServerIcon,
+  TerminalIcon
 } from './Icons';
 import TextScramble from './common/TextScramble';
-import SocialIcon from './landing/SocialIcon';
+import ParticleBackground from './common/ParticleBackground';
+import Typewriter from './common/Typewriter';
+
+import MagneticButton from './common/MagneticButton';
 
 interface LandingPageProps {
   onEnter: () => void;
 }
 
 const USE_CASES = [
-  { title: "Secure P2P Payloads", desc: "Signed handshakes for high-risk data exchange.", icon: TerminalIcon },
-  { title: "Zero-Knowledge Backups", desc: "Encrypted storage with client-side keys.", icon: DatabaseIcon },
-  { title: "Identity Vault", desc: "Store sensitive credentials without server exposure.", icon: LockIcon },
-  { title: "Ephemeral Nodes", desc: "Disposable secure tunnels for quick audits.", icon: ActivityIcon }
+  { 
+    title: "Secure P2P Payloads", 
+    desc: "Signed handshakes for high-risk data exchange with ephemeral keys.", 
+    icon: TerminalIcon,
+    stat: "E2EE"
+  },
+  { 
+    title: "Zero-Knowledge Backups", 
+    desc: "Encrypted storage where only you hold the decryption keys.", 
+    icon: DatabaseIcon,
+    stat: "AES-256"
+  },
+  { 
+    title: "Identity Vault", 
+    desc: "Store sensitive credentials without server-side exposure.", 
+    icon: LockIcon,
+    stat: "NO-LOGS"
+  },
+  { 
+    title: "Ephemeral Nodes", 
+    desc: "Disposable secure tunnels for quick, anonymous audits.", 
+    icon: ActivityIcon,
+    stat: "TOR-LIKE"
+  }
 ];
 
 const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!containerRef.current) return;
-      const x = (e.clientX / window.innerWidth - 0.5) * 20;
-      const y = (e.clientY / window.innerHeight - 0.5) * 20;
-      containerRef.current.style.setProperty('--mouse-x', `${x}px`);
-      containerRef.current.style.setProperty('--mouse-y', `${y}px`);
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      
+      // Calculate normalized position -1 to 1
+      const x = (clientX / innerWidth - 0.5) * 2;
+      const y = (clientY / innerHeight - 0.5) * 2;
+      
+      setMousePosition({ x, y });
+      
+      containerRef.current.style.setProperty('--mouse-x', `${x}`);
+      containerRef.current.style.setProperty('--mouse-y', `${y}`);
+      containerRef.current.style.setProperty('--cursor-x', `${clientX}px`);
+      containerRef.current.style.setProperty('--cursor-y', `${clientY}px`);
     };
-    window.addEventListener('mousemove', handleMouseMove);
 
+    window.addEventListener('mousemove', handleMouseMove);
+    
     // Intersection Observer for scroll animations
-    observerRef.current = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('is-visible');
         }
       });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    }, { threshold: 0.1 });
 
-    const animatedElements = document.querySelectorAll('.scroll-animate');
-    animatedElements.forEach(el => observerRef.current?.observe(el));
+    document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      observerRef.current?.disconnect();
+      observer.disconnect();
     };
   }, []);
 
   return (
-    <div ref={containerRef} className="relative min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-violet-500/30 overflow-x-hidden [--mouse-x:0px] [--mouse-y:0px]">
+    <div ref={containerRef} className="relative min-h-screen bg-[#030712] text-slate-200 font-sans selection:bg-violet-500/30 overflow-x-hidden">
       
-      {/* Liquid Background Blobs */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="liquid-blob bg-violet-600/20 w-[60vw] h-[60vw] top-[-10%] left-[-10%]"></div>
-        <div className="liquid-blob bg-emerald-600/20 w-[50vw] h-[50vw] bottom-[-10%] right-[-10%]" style={{ animationDelay: '-5s' }}></div>
-        <div className="liquid-blob bg-sky-600/20 w-[40vw] h-[40vw] top-[40%] left-[30%]" style={{ animationDelay: '-10s' }}></div>
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)]"></div>
+        
+        {/* Particle System */}
+        <ParticleBackground />
+
+        {/* Glow Orbs */}
+        <div 
+          className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] bg-violet-600/10 rounded-full blur-[120px] animate-blob mix-blend-screen"
+          style={{ transform: `translate(${mousePosition.x * -20}px, ${mousePosition.y * -20}px)` }}
+        />
+        <div 
+          className="absolute bottom-[-20%] right-[-10%] w-[50vw] h-[50vw] bg-indigo-600/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-screen"
+          style={{ transform: `translate(${mousePosition.x * -30}px, ${mousePosition.y * -30}px)` }}
+        />
+        <div 
+          className="absolute top-[40%] left-[40%] w-[30vw] h-[30vw] bg-fuchsia-600/10 rounded-full blur-[100px] animate-blob animation-delay-4000 mix-blend-screen"
+          style={{ transform: `translate(${mousePosition.x * -10}px, ${mousePosition.y * -10}px)` }}
+        />
+        
+        {/* Spotlight Effect following cursor */}
+        <div 
+          className="absolute inset-0 bg-[radial-gradient(600px_circle_at_var(--cursor-x)_var(--cursor-y),rgba(139,92,246,0.06),transparent_40%)]"
+        />
       </div>
 
-      <header className="relative z-50 w-full p-6 md:p-12 flex justify-between items-start animate-in fade-in slide-in-from-top-8 duration-1000">
-        <div className="flex items-center gap-3 md:gap-5 group cursor-default">
-          <div className="p-2.5 md:p-3.5 glass-card-liquid rounded-xl md:rounded-2xl transition-all duration-700 group-hover:rotate-12 group-hover:scale-110">
-            <VaultIcon className="w-5 h-5 md:w-7 md:h-7 text-violet-400" />
+      {/* Header */}
+      <header className="relative z-50 w-full p-4 md:p-6 flex justify-between items-center animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="flex items-center gap-3 group cursor-pointer" onClick={onEnter}>
+          <div className="w-8 h-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg flex items-center justify-center shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform duration-300">
+            <VaultIcon className="w-4 h-4 text-violet-400 group-hover:text-violet-300 transition-colors" />
           </div>
           <div className="flex flex-col">
-            <h1 className="font-black tracking-[0.2em] text-base md:text-xl text-white uppercase italic flex items-center">
-              VAULT<span className="bg-gradient-to-br from-violet-500 to-blue-400 text-white px-1 ml-1">OS</span>
+            <h1 className="font-bold text-base tracking-wider text-white flex items-center gap-2">
+              VAULT<span className="text-violet-500">OS</span>
             </h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span className="w-1 md:w-1.5 h-1 md:h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></span>
-              <span className="text-[7px] md:text-[9px] font-mono text-slate-500 tracking-widest uppercase">Security Enabled</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+              <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest group-hover:text-emerald-400 transition-colors">System Secure</span>
             </div>
           </div>
         </div>
         
-        <div className="hidden lg:flex flex-col items-end gap-2 text-right">
-           <div className="flex gap-4">
-              <div className="px-3 py-1 glass-card-liquid rounded-lg text-[9px] font-mono text-slate-400 uppercase tracking-widest">Latency: 0.04ms</div>
-              <div className="px-3 py-1 glass-card-liquid rounded-lg text-[9px] font-mono text-slate-400 uppercase tracking-widest">Uptime: 100%</div>
+        <div className="hidden md:flex items-center gap-5">
+           <nav className="flex gap-5 text-[11px] font-medium text-slate-400">
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Protocol</a>
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Network</a>
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Security</a>
+           </nav>
+           <div className="h-3 w-px bg-white/10"></div>
+           <div className="flex items-center gap-2 text-[9px] font-mono text-slate-500">
+             <GlobeIcon className="w-2.5 h-2.5 animate-spin-slow" />
+             <span>US-EAST-1</span>
            </div>
         </div>
       </header>
 
-      <section 
-        className="relative z-10 flex flex-col items-center justify-center pt-12 md:pt-32 pb-20 px-4 md:px-6 text-center transition-transform duration-1000 ease-out"
-        style={{ transform: `translate3d(var(--mouse-x), var(--mouse-y), 0)` }}
-      >
-        <div className="max-w-6xl w-full space-y-10 md:space-y-16">
-          <div className="flex justify-center scroll-animate opacity-0 translate-y-8">
-             <div className="px-6 md:px-8 py-2 md:py-2.5 bg-slate-900/50 backdrop-blur-md border border-white/5 rounded-full text-violet-400 text-[7px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.5em] shadow-[0_0_30px_rgba(139,92,246,0.15)]">
-               <TextScramble text="ESTABLISHING_SECURE_TUNNEL" delay={1000} />
+      {/* Hero Section */}
+      <section className="relative z-10 flex flex-col items-center justify-center pt-16 pb-24 px-4 text-center min-h-[75vh]">
+        <div className="max-w-4xl w-full space-y-10">
+          
+          {/* Badge */}
+          <div className="flex justify-center scroll-reveal opacity-0 translate-y-4 transition-all duration-700">
+             <div className="px-3 py-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:bg-white/10 transition-colors cursor-default group">
+               <span className="flex h-1.5 w-1.5 relative">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-violet-500"></span>
+               </span>
+               <span className="text-[9px] font-mono font-bold text-violet-300 tracking-widest uppercase group-hover:text-violet-200 transition-colors">
+                 <TextScramble text="V2.0_STABLE_RELEASE" delay={500} />
+               </span>
              </div>
           </div>
 
-          <div className="space-y-6 md:space-y-8 scroll-animate opacity-0 translate-y-12" style={{ transitionDelay: '200ms' }}>
-             <h2 className="text-[5rem] md:text-[8rem] lg:text-[10rem] font-black tracking-tighter leading-[0.9] italic text-white flex justify-center items-center flex-wrap drop-shadow-2xl">
-               VAULT<span className="bg-gradient-to-br from-violet-500 to-blue-400 text-white px-2 md:px-4 ml-1 md:ml-2">OS</span>
+          {/* Main Title */}
+          <div className="space-y-5 scroll-reveal opacity-0 translate-y-8 transition-all duration-700 delay-100">
+             <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500 drop-shadow-2xl relative">
+               <span className="block animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">SECURE</span>
+               <span className="text-stroke-thin text-white/10 relative inline-block">
+                  <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 animate-gradient-x opacity-30 blur-sm">INFRASTRUCTURE</span>
+                  <Typewriter text="INFRASTRUCTURE" delay={1000} speed={100} cursor={false} />
+               </span>
              </h2>
-             <p className="text-slate-400 text-sm md:text-xl font-light tracking-tight max-w-2xl mx-auto leading-relaxed px-4">
-               High-assurance security for sovereign data orchestrations. <span className="text-white font-medium italic">Verified handshakes</span> and <span className="text-white font-medium italic">hardened transmission</span> tunnels.
+             <p className="text-slate-400 text-base md:text-lg font-light tracking-wide max-w-xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+               The definitive sovereign interface for <span className="text-white font-medium relative inline-block">
+                 high-assurance
+                 <span className="absolute bottom-0 left-0 w-full h-px bg-violet-500/50"></span>
+               </span> payload orchestration. 
+               Built for the privacy-first internet.
              </p>
           </div>
 
-          <div className="flex flex-col items-center gap-10 scroll-animate opacity-0 scale-95" style={{ transitionDelay: '400ms' }}>
-            <button 
+          {/* CTA Button */}
+          <div className="flex flex-col items-center gap-6 scroll-reveal opacity-0 scale-95 transition-all duration-700 delay-200">
+            <MagneticButton 
               onClick={onEnter}
-              className="group relative h-16 md:h-20 px-10 md:px-16 bg-slate-900/40 backdrop-blur-xl border border-white/5 text-white rounded-[2rem] md:rounded-[3rem] font-bold text-sm md:text-lg tracking-[0.2em] md:tracking-[0.3em] uppercase transition-all duration-500 hover:bg-slate-800/60 hover:border-white/10 active:scale-95 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]"
+              className="group relative h-12 px-10 bg-white text-slate-950 rounded-full font-bold text-xs tracking-widest uppercase transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] overflow-hidden"
             >
-              <span className="relative z-10 flex items-center gap-4">
-                INITIALIZE NODE
-                <ArrowRightIcon className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-2 transition-transform duration-500 font-light" />
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-400 to-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%] animate-shimmer opacity-0 group-hover:opacity-100"></div>
+              <span className="relative z-10 flex items-center gap-2 group-hover:text-white transition-colors">
+                Initialize Vault
+                <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </span>
-            </button>
+            </MagneticButton>
+            
+            <div className="flex items-center gap-6 text-[9px] font-mono text-slate-500 uppercase tracking-widest animate-in fade-in duration-1000 delay-700">
+              <div className="flex items-center gap-1.5 group cursor-help">
+                <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500 group-hover:animate-bounce" />
+                <span className="group-hover:text-emerald-400 transition-colors">Audited</span>
+              </div>
+              <div className="flex items-center gap-1.5 group cursor-help">
+                <CpuIcon className="w-3.5 h-3.5 text-violet-500 group-hover:animate-spin-slow" />
+                <span className="group-hover:text-violet-400 transition-colors">E2E Encrypted</span>
+              </div>
+              <div className="flex items-center gap-1.5 group cursor-help">
+                <ServerIcon className="w-3.5 h-3.5 text-blue-500 group-hover:animate-pulse" />
+                <span className="group-hover:text-blue-400 transition-colors">P2P Network</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="relative z-10 py-16 md:py-32 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-          {USE_CASES.map((useCase, i) => (
-            <div 
-              key={i} 
-              className="group glass-card-liquid p-8 md:p-10 rounded-3xl md:rounded-[2.5rem] transition-all duration-1000 hover:-translate-y-4 hover:shadow-[0_20px_40px_-10px_rgba(139,92,246,0.2)] scroll-animate opacity-0 translate-y-12"
-              style={{ transitionDelay: `${i * 150}ms` }}
-            >
-              <div className="w-12 h-12 md:w-16 md:h-16 rounded-2xl liquid-glass-container flex items-center justify-center mb-6 md:mb-8 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500">
-                <useCase.icon className="w-6 h-6 md:w-8 md:h-8 text-violet-400 group-hover:text-white transition-colors" />
+      {/* Features Grid */}
+      <section className="relative z-10 py-16 px-4 md:px-6 border-t border-white/5 bg-black/20 backdrop-blur-sm">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {USE_CASES.map((useCase, i) => (
+              <div 
+                key={i} 
+                className="group relative p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all duration-500 scroll-reveal opacity-0 translate-y-8 hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/10"
+                style={{ transitionDelay: `${i * 100}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 to-violet-500/0 group-hover:from-violet-500/5 group-hover:to-fuchsia-500/5 rounded-2xl transition-all duration-500"></div>
+                
+                <div className="absolute top-4 right-4 text-[8px] font-mono text-slate-600 group-hover:text-violet-400 transition-colors">
+                  {useCase.stat}
+                </div>
+                
+                <div className="relative w-10 h-10 rounded-xl bg-black/50 border border-white/10 flex items-center justify-center mb-5 group-hover:scale-110 group-hover:border-violet-500/30 transition-all duration-500 shadow-lg group-hover:shadow-violet-500/20">
+                  <useCase.icon className="w-5 h-5 text-slate-400 group-hover:text-violet-400 transition-colors" />
+                </div>
+                
+                <h3 className="relative text-base font-bold text-white mb-2 group-hover:text-violet-200 transition-colors">{useCase.title}</h3>
+                <p className="relative text-xs text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+                  {useCase.desc}
+                </p>
               </div>
-              <h3 className="text-sm md:text-base font-black text-white uppercase tracking-wider mb-3 md:mb-4">{useCase.title}</h3>
-              <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-medium">{useCase.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      <footer className="relative z-10 py-16 md:py-24 px-6 md:px-10 border-t border-white/5 bg-slate-950/50 backdrop-blur-3xl scroll-animate opacity-0 translate-y-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-16 lg:gap-24">
-            <div className="md:col-span-5 space-y-6 md:space-y-10 scroll-animate opacity-0 translate-x-[-20px]" style={{ transitionDelay: '200ms' }}>
-              <div className="flex items-center gap-4">
-                 <VaultIcon className="w-6 h-6 md:w-8 md:h-8 text-violet-500" />
-                 <span className="text-xl md:text-3xl font-black text-white italic tracking-tighter uppercase flex items-center">VAULT<span className="bg-gradient-to-br from-violet-500 to-blue-400 text-white px-1 ml-1">OS</span></span>
+      {/* Footer */}
+      <footer className="relative z-10 py-14 px-6 border-t border-white/5 bg-[#020617]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 group cursor-pointer" onClick={onEnter}>
+                 <VaultIcon className="w-5 h-5 text-violet-500 group-hover:rotate-12 transition-transform duration-300" />
+                 <span className="text-lg font-bold text-white tracking-widest group-hover:text-violet-200 transition-colors">VAULT<span className="text-violet-500">OS</span></span>
               </div>
-              <p className="text-xs md:text-sm text-slate-400 leading-relaxed max-w-sm font-medium italic">
-                A definitive sovereign interface for high-security payload orchestration. Built for the privacy-first internet.
+              <p className="text-[10px] text-slate-500 max-w-xs leading-relaxed">
+                Advanced cryptographic primitives for the modern web. 
+                Zero-knowledge architecture by default.
               </p>
-              <div className="flex gap-4">
-                <SocialIcon Icon={GitHubIcon} href="https://github.com" />
-                <SocialIcon Icon={TwitterIcon} href="https://twitter.com" />
-                <SocialIcon Icon={DiscordIcon} href="https://discord.com" />
-              </div>
             </div>
-
-            <div className="md:col-span-7 grid grid-cols-2 gap-8 md:gap-12 scroll-animate opacity-0 translate-x-[20px]" style={{ transitionDelay: '400ms' }}>
-               <div className="space-y-6 md:space-y-8">
-                 <h4 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em] md:tracking-[0.5em]">Protocol Core</h4>
-                 <ul className="space-y-3 md:space-y-4 text-[11px] md:text-sm font-bold text-slate-300">
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Sovereign Docs</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Privacy Kernel</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Audit Logs</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Whitepaper</a></li>
-                 </ul>
-               </div>
-
-               <div className="space-y-6 md:space-y-8">
-                 <h4 className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-[0.3em] md:tracking-[0.5em]">System Meta</h4>
-                 <ul className="space-y-3 md:space-y-4 text-[11px] md:text-sm font-bold text-slate-300">
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Global Node Map</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Security Levels</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Handshake Specs</a></li>
-                   <li><a href="#" className="hover:text-violet-400 transition-colors">Bug Bounty</a></li>
-                 </ul>
-               </div>
+            
+            <div className="flex gap-6">
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                <GitHubIcon className="w-4 h-4" />
+              </a>
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(29,161,242,0.2)]">
+                <TwitterIcon className="w-4 h-4" />
+              </a>
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(88,101,242,0.2)]">
+                <DiscordIcon className="w-4 h-4" />
+              </a>
             </div>
           </div>
-
-          <div className="mt-16 md:mt-24 pt-8 md:pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-10 text-center md:text-left scroll-animate opacity-0 translate-y-4" style={{ transitionDelay: '600ms' }}>
-             <div className="flex flex-col gap-3">
-               <p className="text-[9px] md:text-[11px] font-mono text-slate-500 uppercase tracking-[0.2em] md:tracking-[0.3em]">
-                 &copy; 2025 Vault-OS Protocol Core. Distributed Under Zero-Knowledge License.
-               </p>
-               <p className="text-[9px] md:text-[11px] font-mono text-slate-500 uppercase tracking-[0.2em] md:tracking-[0.3em]">
-                 Engineered by <span className="text-violet-400 font-bold">VaultOS Team</span>
-               </p>
-             </div>
-             <div className="flex flex-wrap justify-center items-center gap-6 md:gap-10 text-[9px] md:text-[11px] font-mono text-slate-500 uppercase tracking-[0.2em]">
-                <span className="flex items-center gap-2 italic"><ShieldCheckIcon className="w-3 md:w-4 h-3 md:h-4 text-emerald-400" /> Zero-Log Verified</span>
-                <span className="px-3 md:px-4 py-1.5 glass-card-liquid rounded-full border-white/10 text-violet-400 font-black italic">BUILD_v2.0_LIQUID</span>
-             </div>
+          
+          <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-5 text-[9px] font-mono text-slate-600 uppercase tracking-widest">
+            <p>&copy; 2025 VAULT SYSTEMS INC.</p>
+            <div className="flex gap-5">
+              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Privacy</a>
+              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Terms</a>
+              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Status</a>
+            </div>
           </div>
         </div>
       </footer>
+      
+      <style>{`
+        .text-stroke-thin {
+          -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+          color: transparent;
+        }
+        .scroll-reveal.is-visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        .animate-spin-slow {
+          animation: spin 8s linear infinite;
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 };

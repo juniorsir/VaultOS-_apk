@@ -19,6 +19,18 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
+      },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom'],
+              'utils-vendor': ['axios', 'crypto-js', 'socket.io-client'],
+              'qr-vendor': ['jsqr', 'qrcode.react']
+            }
+          }
+        },
+        chunkSizeWarningLimit: 1000
       }
     };
 });

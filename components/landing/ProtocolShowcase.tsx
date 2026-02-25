@@ -371,7 +371,7 @@ const ProtocolShowcase: React.FC = () => {
   }, [stage]);
 
   return (
-    <div ref={containerRef} className="liquid-glass-panel relative w-full max-w-6xl mx-auto h-[300px] md:h-[500px] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden flex items-center justify-center mt-12 md:mt-20 group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)]">
+    <div ref={containerRef} className="liquid-glass-panel relative w-full max-w-6xl mx-auto h-[18.75rem] md:h-[31.25rem] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden flex items-center justify-center mt-12 md:mt-20 group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)]">
       
       <div className="absolute inset-4 md:inset-8 border border-red-500/30 rounded-lg pointer-events-none z-0"></div>
       <div className="absolute inset-0 bg-white/[0.01] pointer-events-none"></div>

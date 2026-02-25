@@ -85,12 +85,17 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
   }, [externalFileSelection, isConnected]);
 
   // Auto-load from URL param 'v'
+  const [isSharedLink, setIsSharedLink] = useState(false);
+  
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const v = params.get('v');
-    if (v && isConnected && !fileCode) {
-      setFileCode(v);
-      handleInspect(v);
+    if (v) {
+      setIsSharedLink(true);
+      if (isConnected && !fileCode) {
+        setFileCode(v);
+        handleInspect(v);
+      }
     }
   }, [isConnected]); 
 
@@ -261,6 +266,7 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
               onDelete={handleDeleteAction}
               onScrub={handleScrubAction}
               onPreview={handlePreviewRequest}
+              isSharedLink={isSharedLink}
             />
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 animate-in fade-in slide-in-from-left-4 duration-500">

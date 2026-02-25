@@ -6,7 +6,7 @@ import {
   BugIcon, ActivityIcon, TerminalIcon, ChainIcon,
   ImageIcon, VideoIcon, MusicIcon, CodeIcon, DocumentIcon,
   ArrowPathIcon, SpeakerWaveIcon, SpeakerXMarkIcon, ShieldCheckIcon as ShieldIcon,
-  LockIcon
+  LockIcon, HandshakeIcon
 } from '../Icons';
 import Spinner from '../common/Spinner';
 import { FileInfo, ForensicReport } from '../../types';
@@ -22,11 +22,12 @@ interface FilePreviewModalProps {
   onDelete: () => void;
   onScrub: () => void;
   onPreview: (password?: string) => Promise<{ url: string, type: string } | { error: string } | null>;
+  isSharedLink?: boolean;
 }
 
 const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   isOpen, onClose, fileCode, fileInfo, forensicReport,
-  isBusy, onDownload, onDelete, onScrub, onPreview
+  isBusy, onDownload, onDelete, onScrub, onPreview, isSharedLink
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<string | null>(null);
@@ -269,6 +270,31 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
   const isOrganic = forensicReport ? !forensicReport.is_ai : false;
 
+  const handleMediaError = () => {
+    setLoadError(true);
+    setErrorMessage("Media playback failed. Network might be unstable.");
+    setIsBuffering(false);
+    setIsPlaying(false);
+  };
+
+  const handleRetryMedia = () => {
+    if (mediaRef.current) {
+        setLoadError(false);
+        setErrorMessage(null);
+        setIsBuffering(true);
+        const currentSrc = mediaRef.current.src;
+        mediaRef.current.src = '';
+        mediaRef.current.load();
+        setTimeout(() => {
+            if (mediaRef.current) {
+                mediaRef.current.src = currentSrc;
+                mediaRef.current.load();
+                mediaRef.current.play().catch(e => console.error("Retry play failed", e));
+            }
+        }, 100);
+    }
+  };
+
   return (
     <div className="w-full h-auto md:h-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 relative">
       
@@ -342,11 +368,11 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       </div>
 
       {/* Main Content Card */}
-      <div className="relative w-full h-auto md:flex-1 md:min-h-[600px] bg-[#0f172a] rounded-[30px] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-white/10 ring-1 ring-white/5 glass-animate">
+      <div className="relative w-full h-auto md:flex-1 md:min-h-[37.5rem] bg-[#0f172a] rounded-[30px] shadow-2xl overflow-hidden flex flex-col md:flex-row border border-white/10 ring-1 ring-white/5 glass-animate">
         
         {/* LEFT: Preview Area */}
         <div 
-            className="w-full md:w-2/3 bg-black/40 relative flex flex-col justify-center items-center min-h-[200px] md:min-h-full border-b md:border-b-0 md:border-r border-white/5 overflow-hidden group"
+            className="w-full md:w-2/3 bg-black/40 relative flex flex-col justify-center items-center min-h-[12.5rem] md:min-h-full border-b md:border-b-0 md:border-r border-white/5 overflow-hidden group"
             onContextMenu={(e) => e.preventDefault()}
         >
             
@@ -361,6 +387,18 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     {previewType?.startsWith('image') && (
                         <div className="relative w-full h-auto md:h-full flex items-center justify-center group/image">
                             <img src={previewUrl} alt="Preview" className="w-full h-auto md:max-h-full object-contain shadow-2xl" referrerPolicy="no-referrer" />
+                            
+                            {/* Handshake Button Overlay */}
+                            {isSharedLink && (
+                                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+                                    <button className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <HandshakeIcon className="w-5 h-5 text-violet-600 group-hover:text-violet-700 transition-colors" />
+                                        <span className="uppercase tracking-widest text-xs group-hover:text-violet-950 transition-colors">Secure Handshake</span>
+                                    </button>
+                                </div>
+                            )}
+
                             {/* AI Detection Overlay (Top Left) */}
                             {forensicReport && (
                                 <div className="absolute top-0 left-0 p-6 z-20 transition-opacity duration-300">
@@ -387,12 +425,27 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                                 onWaiting={handleWaiting}
                                 onCanPlay={handleCanPlay}
                                 onEnded={() => setIsPlaying(false)}
+                                onError={handleMediaError}
                                 preload="auto"
                                 playsInline
                             />
 
+                            {/* Error Overlay */}
+                            {loadError && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/80 backdrop-blur-md">
+                                    <div className="text-rose-400 font-bold mb-4">{errorMessage || "Playback Error"}</div>
+                                    <button 
+                                        onClick={handleRetryMedia}
+                                        className="px-4 py-2 bg-white text-black rounded-lg hover:bg-violet-400 hover:text-white transition-colors font-bold text-sm flex items-center gap-2"
+                                    >
+                                        <ArrowPathIcon className="w-4 h-4" />
+                                        Retry Connection
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Loading/Buffering Overlay - Only show if playing or initial load */}
-                            {((isBuffering && isPlaying) || !isMetadataLoaded) && (
+                            {((isBuffering && isPlaying && !loadError) || (!isMetadataLoaded && !loadError)) && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center z-40 bg-black/60 backdrop-blur-md transition-all duration-300">
                                     <div className="relative w-20 h-20">
                                         {/* Tech Rings */}
@@ -462,6 +515,17 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                                 </button>
                             </div>
                             
+                            {/* Handshake Button Overlay */}
+                            {isSharedLink && (
+                                <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+                                    <button className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <HandshakeIcon className="w-5 h-5 text-violet-600 group-hover:text-violet-700 transition-colors" />
+                                        <span className="uppercase tracking-widest text-xs group-hover:text-violet-950 transition-colors">Secure Handshake</span>
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Custom Controls Overlay for Video */}
                             {isMetadataLoaded && (
                                 <div className={`absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent transition-opacity duration-300 z-30 ${!isPlaying ? 'opacity-100' : 'opacity-0 group-hover/video:opacity-100'}`}>
@@ -552,6 +616,17 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                                 onEnded={() => setIsPlaying(false)}
                                 preload="auto"
                             />
+
+                            {/* Handshake Button Overlay */}
+                            {isSharedLink && (
+                                <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
+                                    <button className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                        <HandshakeIcon className="w-5 h-5 text-violet-600 group-hover:text-violet-700 transition-colors" />
+                                        <span className="uppercase tracking-widest text-xs group-hover:text-violet-950 transition-colors">Secure Handshake</span>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Custom Controls Bar */}
                             <div className="absolute bottom-6 left-0 right-0 px-6 md:px-12 z-20 flex justify-center">

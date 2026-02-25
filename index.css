@@ -9,6 +9,10 @@
   --bg-color: #020617;
 }
 
+html {
+  font-size: 11.2px; /* 70% of standard 16px to reduce component sizes by 30% */
+}
+
 body {
   background-color: var(--bg-color);
   margin: 0;
@@ -19,8 +23,8 @@ body {
 
 .glass {
   background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
 }
@@ -28,13 +32,14 @@ body {
 .glass-bright {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(12px);
 }
 
 .glass-animate {
   animation: glass-shimmer 8s infinite linear;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 50%, rgba(255, 255, 255, 0.05) 100%);
   background-size: 200% 200%;
+  will-change: background-position;
 }
 
 @keyframes glass-shimmer {
@@ -114,6 +119,10 @@ body {
   animation: scan-line 3s linear infinite;
 }
 
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
 .loading-shimmer {
   position: relative;
   overflow: hidden;
@@ -147,6 +156,7 @@ body {
 
 .animate-blob {
   animation: blob 10s infinite;
+  will-change: transform;
 }
 
 .animate-pulse-slow {

@@ -37,7 +37,7 @@ const LogLine: React.FC<{ log: LogEntry }> = React.memo(({ log }) => {
   );
 });
 
-const LogsPanel: React.FC<LogsPanelProps> = ({ logs, title = "System Logs", height = "h-[600px]" }) => {
+const LogsPanel: React.FC<LogsPanelProps> = React.memo(({ logs, title = "System Logs", height = "h-[37.5rem]" }) => {
   const logsEndRef = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<LogType | 'all'>('all');
 
@@ -49,7 +49,9 @@ const LogsPanel: React.FC<LogsPanelProps> = ({ logs, title = "System Logs", heig
     scrollToBottom();
   }, [logs, filter]);
 
-  const filteredLogs = logs.filter(log => filter === 'all' || log.type === filter);
+  const filteredLogs = React.useMemo(() => {
+    return logs.filter(log => filter === 'all' || log.type === filter);
+  }, [logs, filter]);
 
   return (
     <div className={`glass glass-animate rounded-[40px] flex flex-col ${height} overflow-hidden border border-slate-800/50 bg-[#0a0f1c]/40 shadow-2xl`}>
@@ -111,6 +113,6 @@ const LogsPanel: React.FC<LogsPanelProps> = ({ logs, title = "System Logs", heig
       </div>
     </div>
   );
-};
+});
 
 export default LogsPanel;

@@ -145,7 +145,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto h-auto md:h-[700px] flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-[24px] md:rounded-[40px] border border-white/10 shadow-2xl bg-[#020617]/80 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
+    <div className="relative w-full max-w-6xl mx-auto h-auto md:h-[43.75rem] flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-[24px] md:rounded-[40px] border border-white/10 shadow-2xl bg-[#020617]/80 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
         {/* Ambient Glow */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50"></div>
         <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>

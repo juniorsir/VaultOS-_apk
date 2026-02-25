@@ -63,16 +63,18 @@ const FileHistoryPanel: React.FC<FileHistoryPanelProps> = memo(({ files, onSelec
     }
   };
 
-  const filteredFiles = files.filter(f => 
-    f.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    f.code.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => {
-    let res = 0;
-    if (sortBy === 'name') res = a.filename.localeCompare(b.filename);
-    else if (sortBy === 'size') res = a.size - b.size;
-    else res = a.date.getTime() - b.date.getTime(); // Default date
-    return sortOrder === 'asc' ? res : -res;
-  });
+  const filteredFiles = React.useMemo(() => {
+    return files.filter(f => 
+      f.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      f.code.toLowerCase().includes(searchQuery.toLowerCase())
+    ).sort((a, b) => {
+      let res = 0;
+      if (sortBy === 'name') res = a.filename.localeCompare(b.filename);
+      else if (sortBy === 'size') res = a.size - b.size;
+      else res = a.date.getTime() - b.date.getTime(); // Default date
+      return sortOrder === 'asc' ? res : -res;
+    });
+  }, [files, searchQuery, sortBy, sortOrder]);
 
   return (
     <div className={`relative rounded-[40px] flex flex-col ${height} overflow-hidden border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl glass-animate`}>

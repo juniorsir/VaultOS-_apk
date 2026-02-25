@@ -9,7 +9,7 @@ interface AuthPanelProps {
   onConnect: () => void;
 }
 
-const AuthPanel: React.FC<AuthPanelProps> = ({ isConnected, isConnecting, onConnect }) => {
+const AuthPanel: React.FC<AuthPanelProps> = React.memo(({ isConnected, isConnecting, onConnect }) => {
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
 
   useEffect(() => {
@@ -141,6 +141,6 @@ const AuthPanel: React.FC<AuthPanelProps> = ({ isConnected, isConnecting, onConn
       </div>
     </div>
   );
-};
+});
 
 export default AuthPanel;

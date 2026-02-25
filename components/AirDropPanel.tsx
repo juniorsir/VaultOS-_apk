@@ -97,7 +97,7 @@ const AirDropPanel: React.FC = memo(() => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto min-h-[600px] flex flex-col p-4 md:p-8 rounded-[40px] border border-white/10 shadow-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
+    <div className="relative w-full max-w-5xl mx-auto min-h-[37.5rem] flex flex-col p-4 md:p-8 rounded-[40px] border border-white/10 shadow-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
         
         {/* Background Ambient Glows */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
