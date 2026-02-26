@@ -54,8 +54,8 @@ const LogsPanel: React.FC<LogsPanelProps> = React.memo(({ logs, title = "System 
   }, [logs, filter]);
 
   return (
-    <div className={`glass glass-animate rounded-[40px] flex flex-col ${height} overflow-hidden border border-slate-800/50 bg-[#0a0f1c]/40 shadow-2xl`}>
-      <div className="bg-slate-900/50 p-5 border-b border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 backdrop-blur-sm">
+    <div className={`rounded-[40px] flex flex-col ${height} overflow-hidden border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl`}>
+      <div className="bg-slate-900/50 p-5 border-b border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
            <div className="flex gap-1.5">
              <div className="w-2.5 h-2.5 rounded-full bg-red-500/20 border border-red-500/50"></div>
@@ -74,7 +74,7 @@ const LogsPanel: React.FC<LogsPanelProps> = React.memo(({ logs, title = "System 
                 <button
                 key={type}
                 onClick={() => setFilter(type)}
-                className={`liquid-btn px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all border ${
+                className={`px-3 py-1.5 rounded-lg text-[10px] uppercase font-bold tracking-wider transition-all border ${
                     filter === type 
                     ? type === 'all' 
                         ? 'bg-slate-700 text-white border-slate-600'
@@ -87,7 +87,6 @@ const LogsPanel: React.FC<LogsPanelProps> = React.memo(({ logs, title = "System 
                         : 'bg-red-500/20 text-red-300 border-red-500/30'
                     : 'bg-transparent text-slate-500 border-transparent hover:bg-white/5 hover:text-slate-300'
                 }`}
-                style={{ '--liquid-color': 'rgba(255, 255, 255, 0.1)' } as React.CSSProperties}
                 >
                 {type}
                 </button>

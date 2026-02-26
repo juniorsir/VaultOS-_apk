@@ -63,7 +63,7 @@ const DashboardPanel: React.FC<DashboardPanelProps> = ({ isConnected, logsCount,
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[40px] border border-slate-800 bg-[#0a0f1c]/80 backdrop-blur-xl shadow-2xl group glass-animate">
+    <div className="relative overflow-hidden rounded-[40px] border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl group">
       {/* Matrix Background Effect */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50"></div>
@@ -167,8 +167,7 @@ const DashboardPanel: React.FC<DashboardPanelProps> = ({ isConnected, logsCount,
 
             <button
             onClick={handleGetBaseUrl}
-            className="liquid-btn w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider group"
-            style={{ '--liquid-color': 'rgba(16, 185, 129, 0.1)' } as React.CSSProperties}
+            className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider group"
             >
             <ChainIcon className={`w-3.5 h-3.5 ${copied ? 'text-emerald-400' : 'text-slate-500 group-hover:text-emerald-400'} transition-colors`} />
             <span>{copied ? 'Endpoint Copied' : 'Copy Node Endpoint'}</span>

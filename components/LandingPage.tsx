@@ -127,7 +127,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       {/* Header */}
       <header className="relative z-50 w-full p-4 md:p-6 lg:p-8 flex justify-between items-center animate-in fade-in slide-in-from-top-4 duration-700">
         <div className="flex items-center gap-3 lg:gap-4 group cursor-pointer" onClick={onEnter}>
-          <div className="w-8 h-8 lg:w-12 lg:h-12 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform duration-300">
+          <div className="w-8 h-8 lg:w-12 lg:h-12 bg-white/5 border border-white/10 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform duration-300">
             <VaultIcon className="w-4 h-4 lg:w-6 lg:h-6 text-violet-400 group-hover:text-violet-300 transition-colors" />
           </div>
           <div className="flex flex-col">
@@ -161,7 +161,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           
           {/* Badge */}
           <div className="flex justify-center scroll-reveal opacity-0 translate-y-4 transition-all duration-700">
-             <div className="px-3 py-1 lg:px-5 lg:py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:bg-white/10 transition-colors cursor-default group">
+             <div className="px-3 py-1 lg:px-5 lg:py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:bg-white/10 transition-colors cursor-default group">
                <span className="flex h-1.5 w-1.5 lg:h-2 lg:w-2 relative">
                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 lg:h-2 lg:w-2 bg-violet-500"></span>
@@ -223,7 +223,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       </section>
 
       {/* Features Grid */}
-      <section className="relative z-10 py-16 lg:py-32 px-4 md:px-6 lg:px-12 border-t border-white/5 bg-black/20 backdrop-blur-sm">
+      <section className="relative z-10 py-16 lg:py-32 px-4 md:px-6 lg:px-12 border-t border-white/5 bg-black/20">
         <div className="max-w-6xl lg:max-w-[90rem] mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8">
             {USE_CASES.map((useCase, i) => (

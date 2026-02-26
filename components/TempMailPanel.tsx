@@ -145,14 +145,14 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto h-auto md:h-[43.75rem] flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-[24px] md:rounded-[40px] border border-white/10 shadow-2xl bg-[#020617]/80 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
+    <div className="relative w-full max-w-6xl mx-auto h-auto md:h-[43.75rem] flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6 rounded-[24px] md:rounded-[40px] border border-white/10 shadow-2xl bg-white/[0.03] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
         {/* Ambient Glow */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50"></div>
         <div className="absolute -top-[200px] -left-[200px] w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
 
         {/* QR Code Modal Overlay */}
         {showQr && sessionId && (
-            <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-6 rounded-[40px] animate-in fade-in duration-200">
+            <div className="absolute inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-6 rounded-[40px] animate-in fade-in duration-200">
                 
                 <div className="relative w-full max-w-sm group">
                     <button 
@@ -242,8 +242,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <button 
                             onClick={createSession}
                             disabled={loading || !!timeLeft}
-                            className="liquid-btn w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
-                            style={{ '--liquid-color': 'rgba(255, 255, 255, 0.2)' } as React.CSSProperties}
+                            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group/btn"
                         >
                             {loading ? <ModernSpinner size="sm" color="white" /> : <AtSymbolIcon className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />}
                             <span>
@@ -299,8 +298,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <div className="grid grid-cols-1 gap-3">
                             <button 
                                 onClick={() => setShowQr(true)}
-                                className="liquid-btn p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-emerald-500/30 text-slate-300 hover:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 transition-all group/action"
-                                style={{ '--liquid-color': 'rgba(16, 185, 129, 0.1)' } as React.CSSProperties}
+                                className="p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-emerald-500/30 text-slate-300 hover:text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 transition-all group/action"
                             >
                                 <div className="p-2 rounded-lg bg-white/5 group-hover/action:bg-emerald-500/20 transition-colors">
                                     <QrCodeIcon className="w-5 h-5" />
@@ -312,8 +310,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <button 
                             onClick={refreshInbox}
                             disabled={refreshing}
-                            className="liquid-btn w-full p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-white/20 text-slate-300 text-xs font-bold flex items-center justify-center gap-2 transition-all"
-                            style={{ '--liquid-color': 'rgba(255, 255, 255, 0.1)' } as React.CSSProperties}
+                            className="w-full p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-white/20 text-slate-300 text-xs font-bold flex items-center justify-center gap-2 transition-all"
                         >
                             <ArrowPathIcon className={`w-4 h-4 ${refreshing ? 'animate-spin text-emerald-400' : ''}`} />
                             <span>{refreshing ? 'Syncing Inbox...' : 'Force Refresh'}</span>
@@ -322,8 +319,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <button 
                             onClick={() => createSession()}
                             disabled={loading || !!timeLeft}
-                            className="liquid-btn w-full p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            style={{ '--liquid-color': 'rgba(16, 185, 129, 0.1)' } as React.CSSProperties}
+                            className="w-full p-3 rounded-xl bg-slate-800/40 hover:bg-slate-800/80 border border-white/5 hover:border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <EnvelopeIcon className="w-4 h-4" />
                             <span>{loading ? 'Generating...' : timeLeft ? `Wait ${timeLeft}` : 'Recreate Email'}</span>
@@ -349,7 +345,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
         </div>
 
         {/* Right Panel: Inbox & Content */}
-        <div className="w-full md:flex-1 min-h-[500px] md:min-h-0 rounded-3xl bg-slate-950/40 border border-white/5 overflow-hidden flex flex-col relative z-10 backdrop-blur-sm">
+        <div className="w-full md:flex-1 min-h-[500px] md:min-h-0 rounded-3xl bg-slate-950/40 border border-white/5 overflow-hidden flex flex-col relative z-10">
             {!sessionId ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 p-8 text-center">
                     <div className="w-24 h-24 rounded-full bg-slate-900/50 border border-white/5 flex items-center justify-center mb-6 relative">
@@ -361,7 +357,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                 </div>
             ) : (
                 <>
-                    <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20 backdrop-blur-md">
+                    <div className="p-4 border-b border-white/5 flex items-center justify-between bg-black/20">
                         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             Live Feed
@@ -412,7 +408,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <div className={`w-full md:w-2/3 bg-slate-900/40 flex flex-col ${!selectedMessage ? 'hidden md:flex' : 'flex'}`}>
                             {selectedMessage ? (
                                 <>
-                                    <div className="p-6 border-b border-white/5 flex items-start gap-4 bg-slate-900/50 backdrop-blur-md">
+                                    <div className="p-6 border-b border-white/5 flex items-start gap-4 bg-slate-900/50">
                                         <button 
                                             onClick={() => setSelectedMessage(null)}
                                             className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"

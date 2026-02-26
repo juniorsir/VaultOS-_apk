@@ -11,8 +11,7 @@ const SyncNodeButton: React.FC<{ onEnter: () => void }> = ({ onEnter }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={onEnter}
-      className="liquid-btn group relative h-20 md:h-24 px-12 md:px-20 glass-bright text-white rounded-[1.5rem] md:rounded-[2.5rem] font-black text-base md:text-lg tracking-[0.3em] md:tracking-[0.5em] uppercase transition-all duration-700 hover:scale-105 active:scale-95 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] hover:shadow-primary-500/30 overflow-hidden border-white/20"
-      style={{ '--liquid-color': 'rgba(255, 255, 255, 0.2)' } as React.CSSProperties}
+      className="group relative h-20 md:h-24 px-12 md:px-20 bg-slate-800 border border-white/20 text-white rounded-[1.5rem] md:rounded-[2.5rem] font-black text-base md:text-lg tracking-[0.3em] md:tracking-[0.5em] uppercase transition-all duration-700 hover:scale-105 active:scale-95 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] hover:shadow-primary-500/30 overflow-hidden"
     >
       <div className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[cubic-bezier(0.85,0,0.15,1)]"></div>
       

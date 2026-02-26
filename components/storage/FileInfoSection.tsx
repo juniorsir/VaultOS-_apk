@@ -152,8 +152,7 @@ const FileInfoSection: React.FC<FileInfoSectionProps> = ({
                       <button
                         onClick={onScrub}
                         disabled={isBusy}
-                        className="liquid-btn w-full h-10 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-violet-900/20 hover:shadow-violet-900/40 active:scale-[0.98] group"
-                        style={{ '--liquid-color': 'rgba(255, 255, 255, 0.2)' } as React.CSSProperties}
+                        className="w-full h-10 flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-all shadow-lg shadow-violet-900/20 hover:shadow-violet-900/40 active:scale-[0.98] group"
                       >
                           {isBusy && activeOperation === 'scrub' ? (
                               <>

@@ -172,14 +172,14 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose, title = "Scan QR
             {hasTorch && (
                 <button
                     onClick={toggleTorch}
-                    className={`p-2 rounded-full transition-colors backdrop-blur-sm border ${torchOn ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-white/10 text-white border-white/20'}`}
+                    className={`p-2 rounded-full transition-colors border ${torchOn ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-white/10 text-white border-white/20'}`}
                 >
                     {torchOn ? <BoltIcon className="w-6 h-6" /> : <BoltSlashIcon className="w-6 h-6" />}
                 </button>
             )}
             <button 
                 onClick={onClose}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
             >
                 <XMarkIcon className="w-6 h-6" />
             </button>
@@ -218,7 +218,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose, title = "Scan QR
                 {!foundCodeRef.current && !loading && (
                     <>
                         <div className="absolute bottom-12 left-0 right-0 text-center z-20">
-                            <p className="text-white/90 text-xs font-mono uppercase tracking-widest bg-black/60 inline-block px-4 py-2 rounded-full backdrop-blur-md border border-white/10">
+                            <p className="text-white/90 text-xs font-mono uppercase tracking-widest bg-black/60 inline-block px-4 py-2 rounded-full border border-white/10">
                                 Align Code Within Frame
                             </p>
                         </div>

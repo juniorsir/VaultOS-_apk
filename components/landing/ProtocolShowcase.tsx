@@ -371,7 +371,7 @@ const ProtocolShowcase: React.FC = () => {
   }, [stage]);
 
   return (
-    <div ref={containerRef} className="liquid-glass-panel relative w-full max-w-6xl mx-auto h-[18.75rem] md:h-[31.25rem] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden flex items-center justify-center mt-12 md:mt-20 group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)]">
+    <div ref={containerRef} className="relative w-full max-w-6xl mx-auto h-[18.75rem] md:h-[31.25rem] rounded-[2rem] md:rounded-[3.5rem] overflow-hidden flex items-center justify-center mt-12 md:mt-20 group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] bg-slate-900/50 border border-white/10">
       
       <div className="absolute inset-4 md:inset-8 border border-red-500/30 rounded-lg pointer-events-none z-0"></div>
       <div className="absolute inset-0 bg-white/[0.01] pointer-events-none"></div>
@@ -403,7 +403,7 @@ const ProtocolShowcase: React.FC = () => {
       <div className="relative w-full h-full flex items-center justify-between px-8 md:px-24 pointer-events-none">
         
         <div className={`flex flex-col items-center transition-all duration-1000 transform ${stage === 0 || stage === 1 ? 'scale-110 opacity-100 translate-x-0' : 'opacity-20 scale-90 -translate-x-4'}`}>
-           <div className="relative p-3 md:p-6 glass rounded-2xl md:rounded-3xl border-white/10 bg-white/5">
+           <div className="relative p-3 md:p-6 rounded-2xl md:rounded-3xl border border-white/10 bg-white/5">
               <ServerIcon className="w-8 h-8 md:w-16 md:h-16 text-slate-300" />
            </div>
            <div className="text-[7px] md:text-[10px] font-mono text-primary-400 mt-2 md:mt-4 text-center tracking-[0.3em] font-black uppercase italic">Node_Alpha</div>
@@ -412,7 +412,7 @@ const ProtocolShowcase: React.FC = () => {
         <div className="relative z-20">
            {(stage === 4 || stage === 5) && (
              <div className="absolute inset-0 flex items-center justify-center animate-in zoom-in fade-in duration-700">
-                <div className={`p-5 md:p-8 glass rounded-full shadow-[0_0_50px_rgba(129,140,248,0.2)] ${stage === 5 ? 'bg-red-500/10 scale-110 shadow-red-500/20' : 'bg-indigo-500/10'} transition-all duration-300`}>
+                <div className={`p-5 md:p-8 rounded-full border border-white/10 shadow-[0_0_50px_rgba(129,140,248,0.2)] ${stage === 5 ? 'bg-red-500/10 scale-110 shadow-red-500/20' : 'bg-indigo-500/10'} transition-all duration-300`}>
                   <LockIcon className={`w-6 h-6 md:w-12 md:h-12 ${stage === 5 ? 'text-red-200' : 'text-white'} ${stage === 4 ? 'animate-pulse' : ''}`} />
                 </div>
              </div>
@@ -420,7 +420,7 @@ const ProtocolShowcase: React.FC = () => {
         </div>
 
         <div className={`flex flex-col items-center transition-all duration-1000 transform ${stage === 6 ? 'opacity-100 scale-110 translate-x-0' : 'opacity-20 scale-90 translate-x-4'}`}>
-           <div className="relative p-3 md:p-6 glass rounded-2xl md:rounded-3xl border-primary-500/40 bg-primary-500/10 shadow-[0_0_30px_rgba(14,165,233,0.2)]">
+           <div className="relative p-3 md:p-6 rounded-2xl md:rounded-3xl border border-primary-500/40 bg-primary-500/10 shadow-[0_0_30px_rgba(14,165,233,0.2)]">
               <UserGroupIcon className="w-8 h-8 md:w-16 md:h-16 text-primary-400" />
            </div>
            <div className="text-[7px] md:text-[10px] font-mono text-primary-400 mt-2 md:mt-4 text-center tracking-[0.3em] font-black uppercase italic">Secure_Terminal</div>

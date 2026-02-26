@@ -233,7 +233,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   const FileTypeIcon = selectedFile ? getFileIcon(selectedFile) : UploadIcon;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
         Upload New File
       </label>
@@ -248,8 +248,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         onDrop={handleDrop}
         className={`relative w-full h-64 rounded-[30px] border-2 border-dashed flex flex-col items-center justify-center transition-all duration-200 group overflow-hidden ${
           isConnected && !isProcessing 
-          ? 'cursor-pointer hover:border-violet-500/50 bg-slate-800/30' 
-          : 'opacity-100 cursor-not-allowed bg-slate-900/40' 
+          ? 'cursor-pointer hover:border-violet-500/50 bg-white/[0.02]' 
+          : 'opacity-100 cursor-not-allowed bg-white/[0.01]' 
         } ${
           isDragging 
             ? 'border-violet-500 bg-violet-500/10 scale-[1.02] shadow-[0_0_30px_rgba(139,92,246,0.15)]' 
@@ -260,7 +260,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         {selectedFile && processingStage === 'idle' && (
             <button 
               onClick={handleRemoveFile}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/30 backdrop-blur-md hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/10 transition-all z-30 shadow-lg"
+              className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/10 transition-all z-30 shadow-lg"
             >
                <XMarkIcon className="w-5 h-5" />
             </button>
@@ -299,7 +299,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
 
         {/* PROCESSING OVERLAYS */}
         {processingStage !== 'idle' && (
-          <div className="absolute inset-0 z-20 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 transition-all duration-500">
+          <div className="absolute inset-0 z-20 bg-slate-950/95 flex flex-col items-center justify-center p-6 transition-all duration-500">
             {processingStage === 'uploading' && (
               <div className="w-full flex flex-col items-center animate-in fade-in zoom-in duration-300">
                 <div className="w-full max-w-[200px] h-2 bg-slate-800 rounded-full overflow-hidden mb-4 border border-white/10 relative">
@@ -475,7 +475,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900 via-transparent to-slate-900 z-20"></div>
                            
                            {/* Center Highlight Bar */}
-                           <div className="absolute top-1/2 left-4 right-4 h-12 -mt-6 border-y border-white/10 bg-white/5 pointer-events-none z-0 rounded-lg backdrop-blur-[1px]"></div>
+                           <div className="absolute top-1/2 left-4 right-4 h-12 -mt-6 border-y border-white/10 bg-white/5 pointer-events-none z-0 rounded-lg"></div>
                        </div>
                     )}
                 </>
@@ -486,8 +486,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
       <button
         onClick={handleUpload}
         disabled={!isConnected || !selectedFile || isProcessing}
-        className="liquid-btn w-full h-12 flex items-center justify-center gap-2 bg-white text-slate-900 hover:bg-slate-200 font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98] group"
-        style={{ '--liquid-color': 'rgba(139, 92, 246, 0.2)' } as React.CSSProperties}
+        className="w-full h-12 flex items-center justify-center gap-2 bg-white text-slate-900 hover:bg-slate-200 font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98] group"
       >
         {isProcessing && processingStage !== 'idle' ? (
           <ModernSpinner size="sm" color="#0f172a" />

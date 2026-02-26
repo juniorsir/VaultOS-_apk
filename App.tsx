@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Toast, { ToastType } from './components/common/Toast';
 import { useSecureClient } from './hooks/useSecureClient';
 import { useTempMail } from './hooks/useTempMail';
 import { LayoutIcon, VaultIcon, TerminalIcon, ClockIcon, EnvelopeIcon, WifiIcon } from './components/Icons';
-import { StoredFile } from './types';
+import { StoredFile, FileInfo, ForensicReport } from './types';
 import Spinner from './components/common/Spinner';
 import ModernSpinner from './components/common/ModernSpinner';
 
@@ -17,6 +18,7 @@ const LandingPage = lazy(() => import('./components/LandingPage'));
 const FileHistoryPanel = lazy(() => import('./components/FileHistoryPanel'));
 const TempMailPanel = lazy(() => import('./components/TempMailPanel'));
 const AirDropPanel = lazy(() => import('./components/AirDropPanel'));
+
 
 type TabType = 'files' | 'history' | 'status' | 'activity' | 'mail' | 'airlink';
 
@@ -88,6 +90,7 @@ const App: React.FC = () => {
   // Check for deep links (QR Code Sessions)
   const [initialMailSession, setInitialMailSession] = useState<string | null>(null);
   const [initialMailEmail, setInitialMailEmail] = useState<string | null>(null);
+
 
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check URL params first
@@ -264,7 +267,7 @@ const App: React.FC = () => {
   if (showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />;
 
   return (
-    <div className="relative min-h-screen pb-12 animate-in fade-in duration-700 overflow-x-hidden">
+    <div className="relative min-h-screen pb-24 md:pb-12 animate-in fade-in duration-700 overflow-x-hidden">
       
       {/* Toast Container */}
       <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
@@ -280,18 +283,18 @@ const App: React.FC = () => {
       </div>
 
       <div className="max-w-6xl lg:max-w-7xl xl:max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-10 relative z-50">
-        <header className="mb-6 md:mb-8 lg:mb-12 flex flex-col md:flex-row md:items-center justify-between gap-4 lg:gap-8">
-          <div className="flex items-center justify-between w-full md:w-auto">
+        <header className="mb-10 md:mb-16 lg:mb-24 flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-4">
+          <div className="flex items-center justify-between w-full lg:w-1/4">
             <div className="flex items-center gap-3 lg:gap-5 group cursor-pointer" onClick={() => setShowLanding(true)}>
-              <div className="p-2.5 lg:p-4 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-[16px] lg:rounded-[20px] border border-violet-500/20 shadow-lg shadow-violet-500/10 transition-transform group-hover:scale-105">
-                <VaultIcon className="w-5 h-5 lg:w-7 lg:h-7 text-violet-400" />
+              <div className="p-2 lg:p-3.5 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-[14px] lg:rounded-[18px] border border-violet-500/20 shadow-lg shadow-violet-500/10 transition-transform group-hover:scale-105">
+                <VaultIcon className="w-4 h-4 lg:w-6 lg:h-6 text-violet-400" />
               </div>
               <div>
-                <h1 className="text-lg lg:text-2xl font-bold tracking-tight">
+                <h1 className="text-base lg:text-xl font-bold tracking-tight">
                   <span className="text-white">Vault</span>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">OS</span>
                 </h1>
-                <div className="hidden md:flex items-center gap-1.5 lg:gap-2 mt-0.5 text-[10px] lg:text-xs font-medium text-slate-400">
+                <div className="hidden md:flex items-center gap-1.5 lg:gap-2 mt-0.5 text-[10px] lg:text-[11px] font-medium text-slate-400">
                   <span className={`inline-block w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full transition-all duration-500 ${isConnected ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] scale-110' : 'bg-slate-600 scale-100'}`}></span>
                   <span className={`transition-colors duration-500 ${isConnected ? 'text-emerald-400' : 'text-slate-400'}`}>
                     {isConnected ? 'Online' : 'Offline'}
@@ -299,38 +302,45 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Mobile Status Indicator */}
+            <div className="lg:hidden flex items-center gap-2 px-3 py-1.5 bg-white/[0.03] backdrop-blur-md rounded-full border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">
+                <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`}></div>
+                <span>{isConnected ? 'SECURE' : 'OFFLINE'}</span>
+            </div>
           </div>
 
-          <div className="relative w-full md:w-auto group z-50">
+          <div className="hidden md:block relative w-full lg:w-auto max-w-full group z-50 min-w-0">
             {/* Visual Container Background */}
-            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-2xl pointer-events-none ring-1 ring-white/5"></div>
+            <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl rounded-full border border-white/10 shadow-2xl pointer-events-none ring-1 ring-white/5"></div>
             
             {/* Scroll Container */}
             <nav 
                 ref={navRef}
-                className="relative flex items-center gap-1 md:gap-1 lg:gap-2 overflow-x-auto no-scrollbar p-1 lg:p-1.5 w-full md:w-auto rounded-full"
+                className="relative flex items-center gap-1 md:gap-1 lg:gap-1 overflow-x-auto no-scrollbar p-1 lg:p-1.5 w-full md:w-auto rounded-full scroll-smooth"
             >
                 {NAV_ITEMS.map((item, index) => (
                   <button
                     key={item.id}
                     ref={index === 0 ? firstItemRef : index === NAV_ITEMS.length - 1 ? lastItemRef : null}
                     onClick={() => setActiveTab(item.id as TabType)}
-                    className={`liquid-btn flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-2.5 px-4 py-2 lg:px-6 lg:py-3 rounded-full text-[11px] md:text-xs lg:text-sm font-semibold transition-all duration-300 ease-out whitespace-nowrap relative overflow-hidden group/item ${
+                    className={`flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-3 px-4 py-2 lg:px-7 lg:py-3.5 rounded-full text-[11px] md:text-xs lg:text-[13px] font-bold transition-all duration-300 ease-out whitespace-nowrap relative group/item ${
                       activeTab === item.id 
-                        ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-[0_4px_20px_-4px_rgba(139,92,246,0.5)] scale-100' 
-                        : 'text-slate-400 hover:text-white hover:bg-white/5 active:scale-95'
+                        ? 'text-white' 
+                        : 'text-slate-400 hover:text-slate-200 active:scale-95'
                     }`}
-                    style={{ '--liquid-color': activeTab === item.id ? 'rgba(255, 255, 255, 0.2)' : 'rgba(139, 92, 246, 0.1)' } as React.CSSProperties}
                   >
-                    {/* Active State Glow/Highlight */}
                     {activeTab === item.id && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
+                        <motion.div 
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-[0_0_20px_rgba(139,92,246,0.3)] rounded-full z-0"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
                     )}
-                    
-                    <item.icon className={`w-3.5 h-3.5 lg:w-5 lg:h-5 transition-colors duration-300 ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover/item:text-violet-300'}`} />
+                    <item.icon className={`w-3.5 h-3.5 lg:w-4.5 lg:h-4.5 transition-colors duration-300 relative z-10 ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover/item:text-violet-300'}`} />
                     <span className="relative z-10">{item.label}</span>
                     {item.id === 'mail' && hasUnreadMail && (
-                        <span className="absolute top-1.5 right-1.5 lg:top-2 lg:right-2 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
+                        <span className="absolute top-1.5 right-1.5 lg:top-2.5 lg:right-4 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
                     )}
                   </button>
                 ))}
@@ -338,33 +348,63 @@ const App: React.FC = () => {
                 <div className="w-1 flex-shrink-0 md:hidden"></div>
             </nav>
 
-            {/* Left Fade Overlay (Mobile Only) - Visual cue for scrolling left */}
-            <div 
-                className={`absolute left-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-r from-[#020617] from-30% via-[#020617]/80 to-transparent pointer-events-none md:hidden rounded-l-full flex items-center justify-start pl-4 transition-opacity duration-300 ${showLeftHint ? 'opacity-100' : 'opacity-0'}`}
-            >
-                <div className="flex items-center gap-1 animate-pulse flex-row-reverse">
-                    <span className="text-[10px] font-bold text-violet-300 uppercase tracking-widest drop-shadow-md">More</span>
-                    <div className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/50 animate-bounce-horizontal rotate-180 shadow-lg shadow-violet-900/20">
-                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-violet-300">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                         </svg>
-                    </div>
-                </div>
-            </div>
+            {/* Left Fade Overlay - Visual cue for scrolling left */}
+            <AnimatePresence>
+                {showLeftHint && (
+                    <motion.div 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        className="absolute left-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-r from-[#020617] from-30% via-[#020617]/80 to-transparent pointer-events-none rounded-l-full flex items-center justify-start pl-4"
+                    >
+                        <div className="flex items-center gap-1 flex-row-reverse">
+                            <span className="text-[10px] font-bold text-violet-300 uppercase tracking-widest drop-shadow-md">More</span>
+                            <motion.div 
+                                animate={{ x: [0, -4, 0] }}
+                                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                                className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/50 rotate-180 shadow-lg shadow-violet-900/20"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-violet-300">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            {/* Right Fade Overlay (Mobile Only) - Visual cue for more content */}
-            <div 
-                className={`absolute right-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-l from-[#020617] from-30% via-[#020617]/80 to-transparent pointer-events-none md:hidden rounded-r-full flex items-center justify-end pr-4 transition-opacity duration-300 ${showRightHint ? 'opacity-100' : 'opacity-0'}`}
-            >
-                <div className="flex items-center gap-1 animate-pulse">
-                    <span className="text-[10px] font-bold text-violet-300 uppercase tracking-widest drop-shadow-md">More</span>
-                    <div className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/50 animate-bounce-horizontal shadow-lg shadow-violet-900/20">
-                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-violet-300">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                         </svg>
-                    </div>
-                </div>
-            </div>
+            {/* Right Fade Overlay - Visual cue for more content */}
+            <AnimatePresence>
+                {showRightHint && (
+                    <motion.div 
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="absolute right-0 top-0 bottom-0 w-24 z-20 bg-gradient-to-l from-[#020617] from-30% via-[#020617]/80 to-transparent pointer-events-none rounded-r-full flex items-center justify-end pr-4"
+                    >
+                        <div className="flex items-center gap-1">
+                            <span className="text-[10px] font-bold text-violet-300 uppercase tracking-widest drop-shadow-md">More</span>
+                            <motion.div 
+                                animate={{ x: [0, 4, 0] }}
+                                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                                className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center border border-violet-500/50 shadow-lg shadow-violet-900/20"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3 text-violet-300">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+          </div>
+
+          {/* Desktop Status Section */}
+          <div className="hidden lg:flex items-center justify-end w-1/4 gap-4">
+             <div className="flex items-center gap-3 px-5 py-2.5 bg-slate-900/40 backdrop-blur-md rounded-full border border-white/5 text-[10px] font-black tracking-[0.2em] text-slate-500 uppercase">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <span>Encrypted_Session</span>
+             </div>
           </div>
         </header>
 
@@ -392,6 +432,7 @@ const App: React.FC = () => {
                   externalFileSelection={activeFileSelection} 
                   preserveSession={preserveSession}
                   getCachedFile={getCachedFile}
+
                 />
               </div>
             )}
@@ -422,11 +463,51 @@ const App: React.FC = () => {
           </Suspense>
         </main>
 
-        <footer className="mt-16 md:mt-24 pb-8 flex flex-col items-center justify-center text-center px-4 space-y-4 opacity-50 hover:opacity-100 transition-opacity">
+
+
+        <footer className="mt-16 md:mt-24 pb-24 md:pb-8 flex flex-col items-center justify-center text-center px-4 space-y-4 opacity-50 hover:opacity-100 transition-opacity">
           <div className="text-slate-500 text-[10px] md:text-xs font-mono">SECURE FILE STORAGE &bull; ENCRYPTED SESSION</div>
           <div className="w-12 h-px bg-white/10"></div>
           <div className="text-[10px] text-slate-600 font-mono tracking-wider uppercase">&copy; 2025 Vault-OS</div>
         </footer>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-6 pt-2 bg-gradient-to-t from-[#020617] via-[#020617]/90 to-transparent">
+          <nav className="flex items-center justify-around bg-white/[0.05] backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+              {NAV_ITEMS.map((item) => (
+                  <button
+                      key={item.id}
+                      onClick={() => {
+                          setActiveTab(item.id as TabType);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className={`flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-all duration-300 relative ${
+                          activeTab === item.id 
+                              ? 'text-violet-400' 
+                              : 'text-slate-500 active:scale-95'
+                      }`}
+                  >
+                      {activeTab === item.id && (
+                          <motion.div 
+                              layoutId="activeTabMobile"
+                              className="absolute inset-0 bg-violet-500/10 rounded-xl z-0"
+                          />
+                      )}
+                      <item.icon className={`w-5 h-5 relative z-10 transition-transform duration-300 ${activeTab === item.id ? 'scale-110' : 'scale-100'}`} />
+                      <span className="text-[8px] font-black uppercase tracking-tighter relative z-10">
+                          {item.id === 'files' ? 'Files' : 
+                           item.id === 'mail' ? 'Mail' : 
+                           item.id === 'airlink' ? 'Link' : 
+                           item.id === 'history' ? 'Archive' : 
+                           item.id === 'status' ? 'System' : 'Logs'}
+                      </span>
+                      {item.id === 'mail' && hasUnreadMail && (
+                          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
+                      )}
+                  </button>
+              ))}
+          </nav>
       </div>
     </div>
   );

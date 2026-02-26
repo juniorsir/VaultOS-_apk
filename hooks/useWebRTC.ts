@@ -52,11 +52,15 @@ export const useWebRTC = () => {
   const lastSpeedBytes = useRef(0);
   const lastSpeedTime = useRef(0);
   
-  const currentTransferIdRef = useRef<string | null>(null);
+  const currentReceivingIdRef = useRef<string | null>(null);
   const transferMetaRef = useRef<{ fileName: string | null; fileSize: number | null }>({
     fileName: null,
     fileSize: null
   });
+
+  // Sending Queue
+  const sendQueueRef = useRef<File[]>([]);
+  const isSendingRef = useRef(false);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -279,7 +283,7 @@ export const useWebRTC = () => {
                 };
                 
                 const newTransferId = Math.random().toString(36).substring(7);
-                currentTransferIdRef.current = newTransferId;
+                currentReceivingIdRef.current = newTransferId;
 
                 const newTransfer: TransferItem = {
                     id: newTransferId,
@@ -311,17 +315,17 @@ export const useWebRTC = () => {
         
         const { fileSize, fileName } = transferMetaRef.current;
 
-        if (fileSize) {
-            updateProgress(incomingBytesRef.current, fileSize);
+        if (fileSize && currentReceivingIdRef.current) {
+            updateTransferProgress(currentReceivingIdRef.current, incomingBytesRef.current, fileSize);
 
             if (incomingBytesRef.current >= fileSize) {
-                finalizeDownload(fileName || 'file');
+                finalizeDownload(fileName || 'file', currentReceivingIdRef.current);
             }
         }
     }
   };
 
-  const updateProgress = (current: number, total: number) => {
+  const updateTransferProgress = (id: string, current: number, total: number) => {
     const now = Date.now();
     // Throttle UI updates to ~60fps
     if (now - lastProgressUpdate.current > 16 || current >= total) {
@@ -341,7 +345,7 @@ export const useWebRTC = () => {
         setState(prev => ({
             ...prev,
             transfers: prev.transfers.map(t => 
-                t.id === currentTransferIdRef.current 
+                t.id === id 
                 ? { ...t, progress: percent, speed: speed > 0 ? speed : t.speed } 
                 : t
             )
@@ -350,7 +354,7 @@ export const useWebRTC = () => {
     }
   };
 
-  const finalizeDownload = (filename: string) => {
+  const finalizeDownload = (filename: string, transferId: string) => {
     const blob = new Blob(incomingBufferRef.current);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -369,25 +373,34 @@ export const useWebRTC = () => {
         ...prev, 
         status: 'CONNECTED',
         transfers: prev.transfers.map(t => 
-            t.id === currentTransferIdRef.current 
+            t.id === transferId 
             ? { ...t, status: 'completed', progress: 100 } 
             : t
         )
     }));
-    currentTransferIdRef.current = null;
+    currentReceivingIdRef.current = null;
   };
 
   // --- Exposed Actions ---
 
   const sendFile = async (file: File) => {
+    sendQueueRef.current.push(file);
+    processSendQueue();
+  };
+
+  const processSendQueue = async () => {
+    if (isSendingRef.current || sendQueueRef.current.length === 0) return;
+
     const channel = dataChannelRef.current;
     if (!channel || channel.readyState !== 'open') {
         setState(prev => ({ ...prev, error: 'Connection not ready' }));
         return;
     }
 
+    isSendingRef.current = true;
+    const file = sendQueueRef.current.shift()!;
+
     const newTransferId = Math.random().toString(36).substring(7);
-    currentTransferIdRef.current = newTransferId;
 
     const newTransfer: TransferItem = {
         id: newTransferId,
@@ -444,7 +457,7 @@ export const useWebRTC = () => {
             
             channel.send(buffer);
             offset += buffer.byteLength;
-            updateProgress(offset, file.size);
+            updateTransferProgress(newTransferId, offset, file.size);
 
             if (offset < file.size) {
                 readNextChunk();
@@ -453,12 +466,13 @@ export const useWebRTC = () => {
                     ...prev, 
                     status: 'CONNECTED',
                     transfers: prev.transfers.map(t => 
-                        t.id === currentTransferIdRef.current 
+                        t.id === newTransferId 
                         ? { ...t, status: 'completed', progress: 100 } 
                         : t
                     )
                 }));
-                currentTransferIdRef.current = null;
+                isSendingRef.current = false;
+                processSendQueue(); // Process next file
             }
         } catch (err) {
             console.error('Send Error:', err);
@@ -467,11 +481,13 @@ export const useWebRTC = () => {
                 status: 'CONNECTED', // Go back to connected even on error
                 error: 'Transfer interrupted',
                 transfers: prev.transfers.map(t => 
-                    t.id === currentTransferIdRef.current 
+                    t.id === newTransferId 
                     ? { ...t, status: 'error' } 
                     : t
                 )
             }));
+            isSendingRef.current = false;
+            processSendQueue(); // Process next file
         }
     };
 

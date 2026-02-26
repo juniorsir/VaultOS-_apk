@@ -61,12 +61,12 @@ export function RetrievalSection({
   };
 
   return (
-    <div className="relative p-6 rounded-[30px] border border-white/10 bg-gradient-to-b from-slate-800/20 to-slate-950/40 backdrop-blur-md shadow-2xl overflow-hidden group">
+    <div className="relative p-6 rounded-[30px] border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl overflow-hidden group">
       <div className="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
       
       {/* Download Progress Overlay */}
       {isBusy && activeOperation === 'download' && (
-         <div className="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center animate-in fade-in duration-300 px-8">
+         <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center animate-in fade-in duration-300 px-8">
              <div className="w-full max-w-sm space-y-5">
                  <div className="flex justify-between items-end text-slate-300 px-1">
                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse">Retrieving Data</span>
@@ -105,7 +105,7 @@ export function RetrievalSection({
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
                <div className="space-y-1.5">
                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">File Code</label>
                    <div className="relative group/input">
@@ -145,8 +145,7 @@ export function RetrievalSection({
               <button
                 onClick={onDownload}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="liquid-btn group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                style={{ '--liquid-color': 'rgba(139, 92, 246, 0.1)' } as React.CSSProperties}
+                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-fuchsia-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-violet-500/50 group-hover:bg-violet-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -162,8 +161,7 @@ export function RetrievalSection({
               <button
                 onClick={onPlay}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="liquid-btn group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                style={{ '--liquid-color': 'rgba(16, 185, 129, 0.1)' } as React.CSSProperties}
+                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-teal-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -179,8 +177,7 @@ export function RetrievalSection({
               <button
                 onClick={onInspect}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="liquid-btn group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(56,189,248,0.3)] hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                style={{ '--liquid-color': 'rgba(56, 189, 248, 0.1)' } as React.CSSProperties}
+                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(56,189,248,0.3)] hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-sky-600/10 via-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-sky-500/50 group-hover:bg-sky-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -196,8 +193,7 @@ export function RetrievalSection({
               <button
                 onClick={onDelete}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="liquid-btn group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 backdrop-blur-md overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(244,63,94,0.3)] hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
-                style={{ '--liquid-color': 'rgba(244, 63, 94, 0.1)' } as React.CSSProperties}
+                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(244,63,94,0.3)] hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 via-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-rose-500/50 group-hover:bg-rose-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">

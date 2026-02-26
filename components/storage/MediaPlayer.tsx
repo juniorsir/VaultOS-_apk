@@ -256,10 +256,10 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({ url, type, onClose }) => {
   };
 
   return (
-    <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 animate-in fade-in zoom-in duration-300 rounded-3xl overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-slate-950/90 flex flex-col items-center justify-center p-4 md:p-8 animate-in fade-in zoom-in duration-300">
         <button 
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-slate-800/80 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-white/10 z-[60]"
+            className="absolute top-4 right-4 md:top-8 md:right-8 p-2 bg-slate-800/80 rounded-full hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-white/10 z-[60]"
         >
             <XMarkIcon className="w-5 h-5" />
         </button>
@@ -332,7 +332,7 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({ url, type, onClose }) => {
             )}
             
             {type === 'audio' && (
-                <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-slate-900/50 backdrop-blur-md relative overflow-hidden">
+                <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-slate-900/50 relative overflow-hidden">
                         
                         {/* Audio Visualization Canvas */}
                         <div className="absolute inset-0 z-0">
@@ -371,7 +371,7 @@ const MediaPlayer: React.FC<MediaPlayerProps> = ({ url, type, onClose }) => {
                         )}
                         
                         {/* Custom Audio Controls */}
-                        <div className="w-full max-w-sm glass-bright rounded-2xl p-4 border border-white/10 bg-slate-900/80 relative z-20 backdrop-blur-xl">
+                        <div className="w-full max-w-sm rounded-2xl p-4 border border-white/10 bg-slate-900/80 relative z-20">
                             <div className="flex flex-col gap-3">
                                 <input 
                                     type="range" 

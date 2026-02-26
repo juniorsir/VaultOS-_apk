@@ -27,7 +27,7 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, onClose }) => {
   const { icon: Icon, color, border, bg } = config[type];
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl glass glass-animate ${border} ${bg} shadow-2xl animate-in slide-in-from-right-8 fade-in duration-300 pointer-events-auto min-w-[300px]`}>
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl ${border} ${bg} shadow-2xl animate-in slide-in-from-right-8 fade-in duration-300 pointer-events-auto min-w-[300px]`}>
       <div className={`p-2 rounded-xl bg-black/20 ${color}`}>
         <Icon className="w-5 h-5" />
       </div>

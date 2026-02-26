@@ -100,12 +100,12 @@ const AirDropPanel: React.FC = memo(() => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto min-h-[37.5rem] flex flex-col p-4 md:p-8 rounded-[40px] border border-white/10 shadow-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden glass-animate">
+    <div className="relative w-full max-w-5xl mx-auto min-h-[37.5rem] flex flex-col p-4 md:p-8 rounded-[40px] border border-white/10 shadow-2xl bg-white/[0.03] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
         
         {/* Background Ambient Glows */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/10 rounded-full blur-[100px]"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/10 rounded-full blur-[100px]"></div>
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 rounded-full blur-[100px]"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/5 rounded-full blur-[100px]"></div>
         </div>
 
         {/* QR Scanner Overlay */}
@@ -157,7 +157,7 @@ const AirDropPanel: React.FC = memo(() => {
             
             {/* Error Banner */}
             {error && (
-                <div className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950/40 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 animate-in fade-in slide-in-from-top-2 backdrop-blur-md shadow-lg shadow-red-900/10 z-50">
+                <div className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 animate-in fade-in slide-in-from-top-2 shadow-lg shadow-red-900/10 z-50">
                     <div className="flex items-center justify-center gap-2 font-bold mb-1">
                         <XMarkIcon className="w-4 h-4" /> Connection Error
                     </div>
@@ -218,8 +218,7 @@ const AirDropPanel: React.FC = memo(() => {
                                 <button 
                                     onClick={() => joinSession(joinCode)}
                                     disabled={joinCode.length < 4}
-                                    className="liquid-btn px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95"
-                                    style={{ '--liquid-color': 'rgba(255, 255, 255, 0.2)' } as React.CSSProperties}
+                                    className="px-6 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-emerald-500/20 active:scale-95"
                                 >
                                     Join
                                 </button>

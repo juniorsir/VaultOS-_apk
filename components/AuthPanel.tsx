@@ -23,7 +23,7 @@ const AuthPanel: React.FC<AuthPanelProps> = React.memo(({ isConnected, isConnect
   }, [isConnected]);
 
   return (
-    <div className="glass glass-animate p-6 rounded-[40px] relative overflow-hidden group transition-all duration-700 hover:shadow-[0_0_40px_rgba(139,92,246,0.15)] border border-white/5 hover:border-white/10">
+    <div className="p-6 rounded-[40px] relative overflow-hidden group transition-all duration-700 bg-white/[0.03] backdrop-blur-xl border border-white/10 hover:border-white/20">
       {/* Decorative background glow with smooth transition */}
       <div className={`absolute -top-24 -right-24 w-80 h-80 rounded-full blur-[100px] transition-all duration-1000 ease-in-out pointer-events-none ${
           isConnected ? 'bg-emerald-500/10 scale-110 translate-y-4' : 'bg-violet-500/10 scale-100 translate-y-0'
@@ -97,12 +97,11 @@ const AuthPanel: React.FC<AuthPanelProps> = React.memo(({ isConnected, isConnect
         <button
           onClick={onConnect}
           disabled={isConnected || isConnecting}
-          className={`liquid-btn relative w-full h-14 overflow-hidden rounded-[30px] font-bold text-xs tracking-widest uppercase transition-all duration-500 ease-out group/btn ${
+          className={`relative w-full h-14 overflow-hidden rounded-[30px] font-bold text-xs tracking-widest uppercase transition-all duration-500 ease-out group/btn ${
              isConnected 
              ? 'bg-slate-950 text-emerald-500 border border-emerald-500/20 cursor-default shadow-none' 
-             : 'bg-white text-slate-900 hover:bg-slate-100 border border-transparent shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] active:scale-[0.98]'
+             : 'bg-white text-slate-900 hover:bg-slate-100 border border-transparent shadow-lg active:scale-[0.98]'
           } ${showSuccessFlash ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-slate-950 scale-[1.02]' : ''}`}
-          style={{ '--liquid-color': 'rgba(16, 185, 129, 0.2)' } as React.CSSProperties}
         >
           {/* Connecting State Pulse */}
           <div className={`absolute inset-0 bg-slate-200 transition-opacity duration-300 ${isConnecting ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
