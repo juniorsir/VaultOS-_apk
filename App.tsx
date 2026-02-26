@@ -266,9 +266,60 @@ const App: React.FC = () => {
 
   if (showLanding) return <LandingPage onEnter={() => setShowLanding(false)} />;
 
+  if (!isConnected) {
+    return (
+      <div className="relative min-h-screen bg-[#020617] flex items-center justify-center p-4 overflow-hidden">
+        {/* Global Background Theme */}
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+            <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px] animate-pulse-slow animation-delay-4000"></div>
+            <div className="absolute top-[20%] left-[15%] w-[300px] h-[300px] bg-fuchsia-600/5 rounded-full blur-[100px] animate-blob"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
+            <div className="absolute inset-0 backdrop-blur-[1px]"></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md flex flex-col items-center animate-in fade-in zoom-in duration-500">
+             <div className="mb-10 text-center">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-slate-900/50 border border-white/10 mb-6 shadow-2xl relative group">
+                    <div className="absolute inset-0 bg-violet-500/20 blur-xl rounded-[2rem] animate-pulse"></div>
+                    <VaultIcon className="w-10 h-10 text-white relative z-10 drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
+                </div>
+                <h1 className="text-4xl font-black text-white tracking-tighter mb-3">
+                    VAULT <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">LOCKED</span>
+                </h1>
+                <p className="text-xs text-slate-500 font-mono uppercase tracking-[0.2em]">
+                    Secure Handshake Required
+                </p>
+             </div>
+
+             <div className="w-full">
+                <Suspense fallback={<LoadingFallback />}>
+                    <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
+                </Suspense>
+             </div>
+
+             <div className="mt-12 flex items-center gap-4 opacity-50">
+                <div className="h-px w-12 bg-white/10"></div>
+                <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">Encrypted Uplink</span>
+                <div className="h-px w-12 bg-white/10"></div>
+             </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative min-h-screen pb-24 md:pb-12 animate-in fade-in duration-700 overflow-x-hidden">
+    <div className="relative min-h-screen pb-24 md:pb-12 animate-in fade-in duration-700 overflow-x-hidden bg-[#020617]">
       
+      {/* Global Background Theme */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] animate-pulse-slow"></div>
+          <div className="absolute bottom-[-10%] left-[-5%] w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[120px] animate-pulse-slow animation-delay-4000"></div>
+          <div className="absolute top-[20%] left-[15%] w-[300px] h-[300px] bg-fuchsia-600/5 rounded-full blur-[100px] animate-blob"></div>
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
+          <div className="absolute inset-0 backdrop-blur-[1px]"></div>
+      </div>
+
       {/* Toast Container */}
       <div className="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none">
         {toasts.map(toast => (
@@ -285,7 +336,14 @@ const App: React.FC = () => {
       <div className="max-w-6xl lg:max-w-7xl xl:max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-10 relative z-50">
         <header className="mb-10 md:mb-16 lg:mb-24 flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-4">
           <div className="flex items-center justify-between w-full lg:w-1/4">
-            <div className="flex items-center gap-3 lg:gap-5 group cursor-pointer" onClick={() => setShowLanding(true)}>
+            <div 
+              className="flex items-center gap-3 lg:gap-5 group cursor-pointer" 
+              onClick={() => setShowLanding(true)}
+              role="button"
+              aria-label="Go to Landing Page"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && setShowLanding(true)}
+            >
               <div className="p-2 lg:p-3.5 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20 rounded-[14px] lg:rounded-[18px] border border-violet-500/20 shadow-lg shadow-violet-500/10 transition-transform group-hover:scale-105">
                 <VaultIcon className="w-4 h-4 lg:w-6 lg:h-6 text-violet-400" />
               </div>
@@ -324,6 +382,7 @@ const App: React.FC = () => {
                     key={item.id}
                     ref={index === 0 ? firstItemRef : index === NAV_ITEMS.length - 1 ? lastItemRef : null}
                     onClick={() => setActiveTab(item.id as TabType)}
+                    aria-label={`Switch to ${item.label}`}
                     className={`flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-3 px-4 py-2 lg:px-7 lg:py-3.5 rounded-full text-[11px] md:text-xs lg:text-[13px] font-bold transition-all duration-300 ease-out whitespace-nowrap relative group/item ${
                       activeTab === item.id 
                         ? 'text-white' 
@@ -479,6 +538,7 @@ const App: React.FC = () => {
                           setActiveTab(item.id as TabType);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
+                      aria-label={`Switch to ${item.label}`}
                       className={`flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-all duration-300 relative ${
                           activeTab === item.id 
                               ? 'text-violet-400' 

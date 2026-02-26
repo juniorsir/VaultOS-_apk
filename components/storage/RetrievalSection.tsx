@@ -115,6 +115,7 @@ export function RetrievalSection({
                         onChange={(e) => setFileCode(e.target.value)}
                         placeholder="Enter secure code..."
                         disabled={!isConnected}
+                        aria-label="File Code"
                         className="w-full h-12 pl-10 pr-4 bg-black/20 border border-white/5 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:bg-slate-900/50 focus:ring-1 focus:ring-violet-500/20 font-mono text-sm shadow-inner transition-all duration-300"
                       />
                       <div className="absolute left-3 top-3.5 text-slate-600 group-focus-within/input:text-violet-400 transition-colors">
@@ -122,23 +123,6 @@ export function RetrievalSection({
                       </div>
                    </div>
                </div>
-
-               <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Decryption Key (Optional)</label>
-                    <div className="relative group/input">
-                        <input
-                          type="password"
-                          value={downloadPassword}
-                          onChange={(e) => setDownloadPassword(e.target.value)}
-                          placeholder="Enter password if required"
-                          disabled={!isConnected}
-                          className="w-full h-12 pl-10 pr-4 bg-black/20 border border-white/5 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:bg-slate-900/50 focus:ring-1 focus:ring-violet-500/20 text-sm shadow-inner transition-all duration-300"
-                        />
-                         <div className="absolute left-3 top-3.5 text-slate-600 group-focus-within/input:text-violet-400 transition-colors">
-                             <LockIcon className="w-5 h-5" />
-                         </div>
-                    </div>
-                </div>
           </div>
           
           <div className="grid grid-cols-4 gap-3 pt-2">
@@ -146,6 +130,7 @@ export function RetrievalSection({
                 onClick={onDownload}
                 disabled={!isConnected || !fileCode || isBusy}
                 className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                aria-label="Download File"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-fuchsia-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-violet-500/50 group-hover:bg-violet-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -162,6 +147,7 @@ export function RetrievalSection({
                 onClick={onPlay}
                 disabled={!isConnected || !fileCode || isBusy}
                 className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                aria-label="Play Media"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-teal-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -178,6 +164,7 @@ export function RetrievalSection({
                 onClick={onInspect}
                 disabled={!isConnected || !fileCode || isBusy}
                 className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(56,189,248,0.3)] hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                aria-label="Inspect File Metadata"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-sky-600/10 via-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-sky-500/50 group-hover:bg-sky-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
@@ -194,6 +181,7 @@ export function RetrievalSection({
                 onClick={onDelete}
                 disabled={!isConnected || !fileCode || isBusy}
                 className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(244,63,94,0.3)] hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                aria-label="Delete File"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 via-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-rose-500/50 group-hover:bg-rose-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">

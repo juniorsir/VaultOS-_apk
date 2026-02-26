@@ -167,18 +167,25 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
         
         // Fetch the actual blob to bypass Content-Disposition: attachment for images
         const isImage = type.startsWith('image/') || (info?.filename && ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'].includes(info.filename.split('.').pop()?.toLowerCase() || ''));
-        const isMedia = type.startsWith('video/') || type.startsWith('audio/') || (info?.filename && ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'm4a'].includes(info.filename.split('.').pop()?.toLowerCase() || ''));
+        const isMedia = type.startsWith('video/') || type.startsWith('audio/') || (info?.filename && ['mp4', 'webm', 'ogg', 'mp3', 'wav', 'm4a', 'aac', 'flac', 'mov', 'avi', 'mkv'].includes(info.filename.split('.').pop()?.toLowerCase() || ''));
         
-        // For media, return the direct URL to allow streaming/buffering
-        // This solves the "wait for full download" issue and allows the browser to handle buffering
+        // For encrypted media or images, fetch as blob to ensure auth/decryption works reliably
+        // Unencrypted media can stream directly
+        if (isImage || (isMedia && password)) {
+            const response = await axios.get(downloadUrl, { responseType: 'blob' });
+            const blobUrl = URL.createObjectURL(response.data);
+            return { url: blobUrl, type: response.data.type || type };
+        }
+        
+        // For unencrypted media, return the direct URL to allow streaming/buffering
         if (isMedia) {
              return { url: downloadUrl, type: type };
         }
 
         if (isImage) {
-            const response = await axios.get(downloadUrl, { responseType: 'blob' });
-            const blobUrl = URL.createObjectURL(response.data);
-            return { url: blobUrl, type: response.data.type || type };
+            // This block is now redundant but kept for safety if logic changes above, 
+            // though the first if block covers isImage. 
+            // Actually, let's remove this redundant block in the replacement.
         }
         
         return { url: downloadUrl, type };

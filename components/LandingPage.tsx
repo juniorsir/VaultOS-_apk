@@ -143,9 +143,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         
         <div className="hidden md:flex items-center gap-5 lg:gap-8">
            <nav className="flex gap-5 lg:gap-8 text-[11px] lg:text-sm font-medium text-slate-400">
-             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Protocol</a>
-             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Network</a>
-             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4">Security</a>
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4" aria-label="View Protocol Documentation">Protocol</a>
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4" aria-label="View Network Status">Network</a>
+             <a href="#" className="hover:text-white transition-colors hover:underline decoration-violet-500 underline-offset-4" aria-label="View Security Policy">Security</a>
            </nav>
            <div className="h-3 lg:h-5 w-px bg-white/10"></div>
            <div className="flex items-center gap-2 text-[9px] lg:text-xs font-mono text-slate-500">
@@ -268,13 +268,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </div>
             
             <div className="flex gap-6">
-              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]" aria-label="Visit our GitHub">
                 <GitHubIcon className="w-4 h-4" />
               </a>
-              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(29,161,242,0.2)]">
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(29,161,242,0.2)]" aria-label="Follow us on Twitter">
                 <TwitterIcon className="w-4 h-4" />
               </a>
-              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(88,101,242,0.2)]">
+              <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(88,101,242,0.2)]" aria-label="Join our Discord">
                 <DiscordIcon className="w-4 h-4" />
               </a>
             </div>

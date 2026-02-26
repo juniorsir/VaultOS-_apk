@@ -246,11 +246,9 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
 
   return (
     <div className="relative p-6 md:p-8 lg:p-12 rounded-[40px] overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/20 bg-white/[0.03] backdrop-blur-xl transition-all duration-500">
-      <div className="absolute top-0 right-0 -mt-32 -mr-32 w-96 h-96 bg-violet-600/5 rounded-full blur-[120px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 -mb-32 -ml-32 w-96 h-96 bg-emerald-600/5 rounded-full blur-[120px] pointer-events-none"></div>
       
-      {/* Subtle Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-50"></div>
+      {/* Subtle Grid Pattern Overlay - kept for texture but reduced opacity */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-30"></div>
       
       {/* Legacy Media Player Overlay (only used if triggered via other means) */}
       {mediaState.url && mediaState.type && (
@@ -266,7 +264,7 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
         {view === 'preview' && (
           <div className="flex items-center justify-between mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center gap-4">
-              <button onClick={() => setView('default')} className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors">
+              <button onClick={() => setView('default')} className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors" aria-label="Back to Dashboard">
                 <PlusIcon className="w-6 h-6 transform rotate-45" />
               </button>
               <h2 className="text-xl font-bold text-white tracking-wider"><span className="text-slate-500">/</span> INSPECTOR</h2>

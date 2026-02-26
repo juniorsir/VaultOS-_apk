@@ -79,9 +79,6 @@ const FileHistoryPanel: React.FC<FileHistoryPanelProps> = React.memo(({
 
   return (
     <div className="flex flex-col h-full bg-white/[0.03] backdrop-blur-xl rounded-[40px] border border-white/10 p-6 md:p-10 relative overflow-hidden">
-        {/* Animated Background Elements - Reduced opacity to blend better */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-violet-600/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/5 blur-[120px] rounded-full translate-y-1/2 -translate-x-1/2 animate-pulse" style={{ animationDelay: '1s' }}></div>
         
         {/* Subtle Grid Pattern Overlay */}
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>

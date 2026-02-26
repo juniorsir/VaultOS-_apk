@@ -103,12 +103,6 @@ const AirDropPanel: React.FC = memo(() => {
   return (
     <div className="relative w-full max-w-5xl mx-auto min-h-[37.5rem] flex flex-col p-4 md:p-8 rounded-[40px] border border-white/10 shadow-2xl bg-white/[0.03] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
         
-        {/* Background Ambient Glows */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-violet-600/5 rounded-full blur-[100px]"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/5 rounded-full blur-[100px]"></div>
-        </div>
-
         {/* QR Scanner Overlay */}
         {showScanner && (
             <QRScanner 
@@ -147,6 +141,7 @@ const AirDropPanel: React.FC = memo(() => {
                     onClick={disconnect}
                     className="p-2.5 rounded-xl bg-white/5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/5 hover:border-red-500/30 transition-all group"
                     title="Disconnect"
+                    aria-label="Disconnect Session"
                 >
                     <XMarkIcon className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                 </button>
@@ -227,6 +222,7 @@ const AirDropPanel: React.FC = memo(() => {
                                     value={joinCode}
                                     onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                                     maxLength={6}
+                                    aria-label="Enter 6-digit Join Code"
                                     className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-center font-mono text-white placeholder:text-slate-600 focus:outline-none focus:border-emerald-500/50 uppercase tracking-widest text-sm"
                                 />
                                 <button 
@@ -287,7 +283,14 @@ const AirDropPanel: React.FC = memo(() => {
                         </div>
                     ) : (
                         <div className="flex flex-col items-center">
-                            <div className="relative group cursor-pointer mb-8" onClick={copyRoomId}>
+                            <div 
+                                className="relative group cursor-pointer mb-8" 
+                                onClick={copyRoomId}
+                                role="button"
+                                aria-label="Copy Session ID"
+                                tabIndex={0}
+                                onKeyDown={(e) => e.key === 'Enter' && copyRoomId()}
+                            >
                                 <div className="absolute -inset-1 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-[2.5rem] blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
                                 <div className="relative bg-white p-8 rounded-[2.2rem] shadow-2xl flex flex-col items-center gap-6 border border-white/20">
                                     <div className="w-full flex items-center justify-between border-b border-slate-100 pb-4">
@@ -518,6 +521,10 @@ const AirDropPanel: React.FC = memo(() => {
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
                             onDrop={handleDrop}
+                            role="button"
+                            aria-label="Select file to upload"
+                            tabIndex={0}
+                            onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
                             className={`relative w-full h-24 rounded-2xl border-2 border-dashed flex items-center justify-center gap-4 transition-all duration-200 cursor-pointer group overflow-hidden ${
                                 isDragging 
                                 ? 'border-violet-500 bg-violet-500/10' 

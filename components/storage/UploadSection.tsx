@@ -261,6 +261,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
             <button 
               onClick={handleRemoveFile}
               className="absolute top-4 right-4 p-2 rounded-full bg-slate-900/30 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-white/10 transition-all z-30 shadow-lg"
+              aria-label="Remove selected file"
             >
                <XMarkIcon className="w-5 h-5" />
             </button>
@@ -366,127 +367,11 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-         <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400 ml-1">Password (Optional)</label>
-            <div className="relative">
-                <input 
-                  type="password" 
-                  value={uploadPassword}
-                  onChange={(e) => setUploadPassword(e.target.value)}
-                  disabled={!selectedFile || isProcessing}
-                  className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
-                  placeholder="Enter password"
-                />
-                <LockIcon className="w-4 h-4 text-slate-600 absolute right-3 top-3" />
-            </div>
-         </div>
-         <div className="space-y-1 relative" ref={expiryPickerRef}>
-            <label className="text-xs font-medium text-slate-400 ml-1">Expires In</label>
-            
-            {isCustomExpiry ? (
-                <div className="flex items-center gap-2 w-full">
-                    <div className="flex-1 relative">
-                        <input 
-                            type="number" 
-                            min="1" 
-                            max="999"
-                            value={customVal}
-                            onChange={(e) => {
-                                setCustomVal(e.target.value);
-                                setUploadExpiry(`${e.target.value}${customUnit}`);
-                            }}
-                            className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl pl-4 pr-2 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 transition-colors pointer-events-auto"
-                        />
-                    </div>
-                    <div className="w-24 relative">
-                         <select 
-                            value={customUnit}
-                            onChange={(e) => {
-                                setCustomUnit(e.target.value);
-                                setUploadExpiry(`${customVal}${e.target.value}`);
-                            }}
-                            className="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500 appearance-none transition-colors pointer-events-auto"
-                         >
-                            <option value="m">Mins</option>
-                            <option value="h">Hours</option>
-                            <option value="d">Days</option>
-                         </select>
-                         <ChevronDownIcon className="w-3 h-3 text-slate-500 absolute right-3 top-3.5 pointer-events-none" />
-                    </div>
-                    <button 
-                        onClick={() => { setIsCustomExpiry(false); setUploadExpiry('24h'); }}
-                        className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/50 transition-colors pointer-events-auto"
-                        title="Reset to default"
-                    >
-                        <XMarkIcon className="w-4 h-4" />
-                    </button>
-                </div>
-            ) : (
-                <>
-                    <button
-                      onClick={() => !isProcessing && selectedFile && setShowExpiryPicker(!showExpiryPicker)}
-                      disabled={!selectedFile || isProcessing}
-                      className={`w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white flex items-center justify-between transition-colors ${!selectedFile || isProcessing ? 'opacity-50 cursor-not-allowed' : 'hover:border-violet-500/50 hover:bg-slate-800/50'}`}
-                    >
-                      <div className="flex items-center gap-2">
-                          <ClockIcon className="w-4 h-4 text-slate-500" />
-                          <span>{EXPIRY_OPTIONS.find(o => o.value === uploadExpiry)?.label || uploadExpiry}</span>
-                      </div>
-                      <ChevronDownIcon className={`w-4 h-4 text-slate-500 transition-transform ${showExpiryPicker ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {/* Custom Dropdown Picker */}
-                    {showExpiryPicker && (
-                       <div className="absolute bottom-full mb-2 left-0 w-full h-48 bg-slate-900 border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl z-50 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/10">
-                           <div 
-                               ref={scrollContainerRef}
-                               onScroll={(e) => {
-                                   const index = Math.round(e.currentTarget.scrollTop / 48);
-                                   if (EXPIRY_OPTIONS[index]) {
-                                       setFocusedExpiry(EXPIRY_OPTIONS[index].value);
-                                   }
-                               }}
-                               className="flex-1 overflow-y-auto snap-y snap-mandatory no-scrollbar py-[72px] relative z-10 scroll-smooth"
-                           >
-                               {EXPIRY_OPTIONS.map(opt => (
-                                   <div 
-                                       key={opt.value}
-                                       onClick={() => { 
-                                           if (opt.value === 'custom') {
-                                               setIsCustomExpiry(true);
-                                           } else {
-                                               setUploadExpiry(opt.value); 
-                                           }
-                                           setShowExpiryPicker(false); 
-                                       }}
-                                       className={`h-12 flex items-center justify-center snap-center cursor-pointer transition-all duration-300 ${
-                                           focusedExpiry === opt.value 
-                                           ? 'text-violet-400 font-bold text-base tracking-wide scale-100 opacity-100 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]' 
-                                           : 'text-slate-500 hover:text-slate-300 text-sm scale-95 opacity-40 hover:opacity-70'
-                                       }`}
-                                   >
-                                       {opt.label}
-                                   </div>
-                               ))}
-                           </div>
-                           
-                           {/* Modern Gradient Overlays */}
-                           <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-slate-900 via-transparent to-slate-900 z-20"></div>
-                           
-                           {/* Center Highlight Bar */}
-                           <div className="absolute top-1/2 left-4 right-4 h-12 -mt-6 border-y border-white/10 bg-white/5 pointer-events-none z-0 rounded-lg"></div>
-                       </div>
-                    )}
-                </>
-            )}
-         </div>
-      </div>
-      
       <button
         onClick={handleUpload}
         disabled={!isConnected || !selectedFile || isProcessing}
         className="w-full h-12 flex items-center justify-center gap-2 bg-white text-slate-900 hover:bg-slate-200 font-bold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98] group"
+        aria-label="Start Upload"
       >
         {isProcessing && processingStage !== 'idle' ? (
           <ModernSpinner size="sm" color="#0f172a" />

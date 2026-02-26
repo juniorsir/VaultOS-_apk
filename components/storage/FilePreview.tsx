@@ -280,6 +280,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   // Auto-load Logic
   useEffect(() => {
     if (fileCode && fileInfo && isMedia && autoLoadRef.current !== fileCode) {
+        // Skip auto-load if password is required to allow user to enter it
+        if (fileInfo.requires_password) return;
+
         autoLoadRef.current = fileCode;
         handleLoadPreview();
     }
@@ -294,21 +297,32 @@ const FilePreview: React.FC<FilePreviewProps> = ({
     setIsPlaying(false);
   };
 
-  const handleRetryMedia = () => {
-    if (mediaRef.current) {
+  const handleRetryMedia = async () => {
+    if (mediaRef.current && previewUrl) {
         setLoadError(false);
         setErrorMessage(null);
         setIsBuffering(true);
-        const currentSrc = mediaRef.current.src;
-        mediaRef.current.src = '';
-        mediaRef.current.load();
-        setTimeout(() => {
-            if (mediaRef.current) {
-                mediaRef.current.src = currentSrc;
-                mediaRef.current.load();
-                mediaRef.current.play().catch(e => console.error("Retry play failed", e));
+        
+        try {
+            // Force a reload of the current source
+            mediaRef.current.load();
+            
+            // Attempt to play
+            const playPromise = mediaRef.current.play();
+            if (playPromise !== undefined) {
+                await playPromise;
             }
-        }, 100);
+        } catch (e: any) {
+            // Ignore AbortError which happens when playback is interrupted by a new load request
+            if (e.name !== 'AbortError') {
+                console.error("Retry play failed", e);
+                setLoadError(true);
+                setErrorMessage("Playback failed. Please try downloading the file.");
+            }
+        }
+    } else {
+        // If media ref is missing but we have a URL, try reloading the whole preview
+        handleLoadPreview();
     }
   };
 
@@ -329,6 +343,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                      <button 
                        onClick={() => setShowDeleteConfirm(false)}
                        className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
+                       aria-label="Cancel Delete"
                      >
                         Cancel
                      </button>
@@ -338,6 +353,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                           onDelete();
                        }}
                        className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition-colors shadow-lg shadow-rose-900/20"
+                       aria-label="Confirm Delete"
                      >
                         Confirm Kill
                      </button>
@@ -350,7 +366,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
         {/* Media Preview */}
         <div 
-            className="relative w-full aspect-video bg-black/60 backdrop-blur-xl flex items-center justify-center overflow-hidden group border border-white/10 rounded-[32px] mb-8 shadow-2xl"
+            className="relative w-full min-h-[320px] md:min-h-0 md:aspect-video bg-black/60 backdrop-blur-xl flex items-center justify-center overflow-hidden group border border-white/10 rounded-[32px] mb-8 shadow-2xl"
             onContextMenu={(e) => e.preventDefault()}
         >
             
@@ -369,7 +385,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                             {/* Handshake Button Overlay */}
                             {isSharedLink && (
                                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
-                                    <button className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden">
+                                    <button 
+                                        className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden"
+                                        aria-label="Secure Handshake"
+                                    >
                                         <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         <HandshakeIcon className="w-5 h-5 text-violet-600 group-hover:text-violet-700 transition-colors" />
                                         <span className="uppercase tracking-widest text-xs group-hover:text-violet-950 transition-colors">Secure Handshake</span>
@@ -418,6 +437,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                     <button 
                                         onClick={handleRetryMedia}
                                         className="px-4 py-2 bg-white text-black rounded-lg hover:bg-violet-400 hover:text-white transition-colors font-bold text-sm flex items-center gap-2"
+                                        aria-label="Retry Media Connection"
                                     >
                                         <ArrowPathIcon className="w-4 h-4" />
                                         Retry Connection
@@ -461,6 +481,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                     <button 
                                         onClick={togglePlay}
                                         className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 hover:scale-110 transition-all pointer-events-auto shadow-2xl"
+                                        aria-label={isPlaying ? "Pause" : "Play"}
                                     >
                                         {isPlaying ? <PauseIcon className="w-8 h-8" /> : <PlayIcon className="w-8 h-8 ml-1" />}
                                     </button>
@@ -485,6 +506,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                         handleCopyId();
                                     }}
                                     className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:border-violet-500/30 transition-all flex items-center gap-2 shadow-lg"
+                                    aria-label="Copy File ID"
                                 >
                                     <span className="opacity-50">ID</span>
                                     <span className="font-bold">{fileCode}</span>
@@ -499,7 +521,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                             {/* Handshake Button Overlay */}
                             {isSharedLink && (
                                 <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-500">
-                                    <button className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden">
+                                    <button 
+                                        className="group relative flex items-center gap-3 px-6 py-3 bg-white text-slate-950 rounded-full font-bold shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,255,255,0.5)] transition-all duration-300 overflow-hidden"
+                                        aria-label="Secure Handshake"
+                                    >
                                         <div className="absolute inset-0 bg-gradient-to-r from-violet-400/20 to-fuchsia-400/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                         <HandshakeIcon className="w-5 h-5 text-violet-600 group-hover:text-violet-700 transition-colors" />
                                         <span className="uppercase tracking-widest text-xs group-hover:text-violet-950 transition-colors">Secure Handshake</span>
@@ -520,6 +545,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                  value={currentTime} 
                                                  onChange={handleSeek}
                                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                 aria-label="Seek Slider"
                                              />
                                          </div>
                                          
@@ -528,6 +554,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                 <button 
                                                      onClick={togglePlay}
                                                      className="text-white hover:text-violet-400 transition-colors"
+                                                     aria-label={isPlaying ? "Pause" : "Play"}
                                                  >
                                                      {isPlaying ? <PauseIcon className="w-6 h-6" /> : <PlayIcon className="w-6 h-6" />}
                                                  </button>
@@ -536,7 +563,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                              
                                              <div className="flex items-center gap-4">
                                                  <div className="flex items-center gap-2 group/vol">
-                                                    <button onClick={toggleMute} className="text-white hover:text-violet-400">
+                                                    <button onClick={toggleMute} className="text-white hover:text-violet-400" aria-label={isMuted ? "Unmute" : "Mute"}>
                                                         {isMuted || volume === 0 ? <SpeakerXMarkIcon className="w-5 h-5" /> : <SpeakerWaveIcon className="w-5 h-5" />}
                                                     </button>
                                                     <input 
@@ -547,12 +574,14 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                         value={volume} 
                                                         onChange={handleVolumeChange}
                                                         className="w-20 h-1 bg-white/30 rounded-full appearance-none cursor-pointer accent-white"
+                                                        aria-label="Volume Slider"
                                                     />
                                                  </div>
                                                  <button 
                                                      onClick={toggleFullScreen}
                                                      className="text-white hover:text-violet-400 transition-colors"
                                                      title="Full Screen"
+                                                     aria-label="Toggle Fullscreen"
                                                  >
                                                      <ArrowsPointingOutIcon className="w-5 h-5" />
                                                  </button>
@@ -638,6 +667,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                  value={currentTime} 
                                                  onChange={handleSeek}
                                                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                 aria-label="Seek Slider"
                                              />
                                          </div>
                                          
@@ -646,7 +676,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                              
                                              <div className="flex items-center gap-6">
                                                  <div className="flex items-center gap-2 group/vol">
-                                                    <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors">
+                                                    <button onClick={toggleMute} className="text-slate-400 hover:text-white transition-colors" aria-label={isMuted ? "Unmute" : "Mute"}>
                                                         {isMuted || volume === 0 ? <SpeakerXMarkIcon className="w-4 h-4" /> : <SpeakerWaveIcon className="w-4 h-4" />}
                                                     </button>
                                                     <div className="w-16 h-1 bg-slate-700 rounded-full relative overflow-hidden group-hover/vol:bg-slate-600 transition-colors">
@@ -659,13 +689,15 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                              value={volume} 
                                                              onChange={handleVolumeChange}
                                                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                             aria-label="Volume Slider"
                                                          />
                                                     </div>
                                                  </div>
-
+ 
                                                  <button 
                                                      onClick={togglePlay}
                                                      className="w-10 h-10 flex items-center justify-center bg-white text-slate-900 rounded-full hover:bg-violet-400 hover:text-white transition-all shadow-lg hover:shadow-violet-500/20 active:scale-95"
+                                                     aria-label={isPlaying ? "Pause" : "Play"}
                                                  >
                                                      {isPlaying ? <PauseIcon className="w-5 h-5" /> : <PlayIcon className="w-5 h-5 ml-0.5" />}
                                                  </button>
@@ -714,13 +746,13 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                     ) : (
                         <>
                              {/* Only show retry or not supported if NOT loading */}
-                             <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 flex items-center justify-center shadow-2xl mb-6 group-hover:scale-110 transition-transform duration-500">
-                                <FileIcon className="w-8 h-8 md:w-10 md:h-10 text-slate-400 group-hover:text-violet-400 transition-colors" />
+                             <div className="w-16 h-16 md:w-24 md:h-24 rounded-[1.5rem] md:rounded-[2rem] bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 flex items-center justify-center shadow-2xl mb-4 md:mb-6 group-hover:scale-110 transition-transform duration-500">
+                                <FileIcon className="w-6 h-6 md:w-10 md:h-10 text-slate-400 group-hover:text-violet-400 transition-colors" />
                              </div>
                              
                              {isMedia ? (
-                                <div className="space-y-4 w-full max-w-xs mx-auto">
-                                    <div className={`text-sm font-medium ${loadError ? 'text-rose-400' : 'text-slate-400'}`}>
+                                <div className="space-y-3 md:space-y-4 w-full max-w-[260px] md:max-w-xs mx-auto px-4 md:px-0">
+                                    <div className={`text-xs md:text-sm font-medium ${loadError ? 'text-rose-400' : 'text-slate-400'}`}>
                                         {loadError ? (errorMessage || 'Preview Failed') : 'Ready to View'}
                                     </div>
                                     
@@ -731,20 +763,22 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                                 value={passwordInput}
                                                 onChange={(e) => setPasswordInput(e.target.value)}
                                                 placeholder="Enter Decryption Key"
-                                                className="w-full h-10 pl-10 pr-4 bg-black/40 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:bg-slate-900/50 text-sm transition-all"
+                                                className="w-full h-9 md:h-10 pl-9 md:pl-10 pr-4 bg-black/40 border border-white/10 rounded-lg text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:bg-slate-900/50 text-xs md:text-sm transition-all"
                                                 onKeyDown={(e) => e.key === 'Enter' && handleLoadPreview()}
+                                                aria-label="Decryption Key"
                                             />
-                                            <div className="absolute left-3 top-2.5 text-slate-600 group-focus-within/input:text-violet-400 transition-colors">
-                                                <LockIcon className="w-5 h-5" />
+                                            <div className="absolute left-3 top-2.5 md:top-2.5 text-slate-600 group-focus-within/input:text-violet-400 transition-colors">
+                                                <LockIcon className="w-4 h-4 md:w-5 md:h-5" />
                                             </div>
                                         </div>
                                     )}
 
                                     <button 
                                         onClick={handleLoadPreview}
-                                        className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white text-slate-950 hover:bg-violet-400 hover:text-white font-bold transition-all shadow-lg hover:shadow-violet-500/25 active:scale-95 group/btn"
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 md:px-6 md:py-3 rounded-xl bg-white text-slate-950 hover:bg-violet-400 hover:text-white font-bold transition-all shadow-lg hover:shadow-violet-500/25 active:scale-95 group/btn text-xs md:text-sm"
+                                        aria-label={fileInfo?.requires_password ? (loadError ? 'Retry Decryption' : 'Decrypt and View') : (loadError ? 'Retry Loading' : 'Load Preview')}
                                     >
-                                         {fileInfo?.requires_password ? <LockIcon className="w-5 h-5" /> : <ArrowPathIcon className="w-5 h-5" />}
+                                         {fileInfo?.requires_password ? <LockIcon className="w-4 h-4 md:w-5 md:h-5" /> : <ArrowPathIcon className="w-4 h-4 md:w-5 md:h-5" />}
                                          <span>
                                             {fileInfo?.requires_password 
                                                 ? (loadError ? 'Retry Decryption' : 'Decrypt & View') 
@@ -827,32 +861,96 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
                 {/* Forensic Analysis Section */}
                 {forensicReport && (
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                            <BugIcon className="w-5 h-5 text-slate-400" />
-                            <span>Forensic Analysis</span>
-                        </h3>
-                        <div className="p-5 bg-white/[0.02] backdrop-blur-md rounded-2xl border border-white/10 space-y-4 text-sm">
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400 flex items-center gap-2"><ActivityIcon className="w-4 h-4" /> AI Generated</span>
-                                <span className={`font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                    {forensicReport.is_ai ? 'Yes' : 'No'}
-                                </span>
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <BugIcon className="w-4 h-4" />
+                                <span>Forensic Analysis Report</span>
+                            </h3>
+                            <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${
+                                forensicReport.is_ai || forensicReport.has_metadata 
+                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' 
+                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                            }`}>
+                                {forensicReport.is_ai || forensicReport.has_metadata ? 'Attention Required' : 'Verified Secure'}
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-slate-400 flex items-center gap-2"><TerminalIcon className="w-4 h-4" /> Metadata</span>
-                                <span className={`font-bold ${forensicReport.has_metadata ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                    {forensicReport.has_metadata ? 'Present' : 'Clean'}
-                                </span>
+                        </div>
+
+                        <div className="p-1 rounded-3xl bg-gradient-to-br from-white/10 via-white/5 to-transparent p-[1px]">
+                            <div className="bg-slate-950/80 backdrop-blur-xl rounded-[23px] p-6 space-y-6">
+                                
+                                {/* Status Grid */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* AI Detection Card */}
+                                    <div className={`p-4 rounded-2xl border ${forensicReport.is_ai ? 'bg-amber-500/5 border-amber-500/20' : 'bg-slate-900/50 border-white/5'} flex flex-col gap-3 transition-all hover:scale-[1.02]`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className={`p-2 rounded-lg ${forensicReport.is_ai ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800 text-slate-400'}`}>
+                                                <ActivityIcon className="w-5 h-5" />
+                                            </div>
+                                            {forensicReport.is_ai && (
+                                                <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Content Origin</div>
+                                            <div className={`text-sm font-bold ${forensicReport.is_ai ? 'text-amber-400' : 'text-slate-200'}`}>
+                                                {forensicReport.is_ai ? 'AI Generated' : 'Human Verified'}
+                                            </div>
+                                        </div>
+                                        {forensicReport.is_ai && (
+                                            <div className="w-full bg-amber-950/30 h-1 rounded-full overflow-hidden">
+                                                <div className="h-full bg-amber-500 w-[92%]"></div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Metadata Card */}
+                                    <div className={`p-4 rounded-2xl border ${forensicReport.has_metadata ? 'bg-rose-500/5 border-rose-500/20' : 'bg-slate-900/50 border-white/5'} flex flex-col gap-3 transition-all hover:scale-[1.02]`}>
+                                        <div className="flex items-center justify-between">
+                                            <div className={`p-2 rounded-lg ${forensicReport.has_metadata ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-slate-400'}`}>
+                                                <TerminalIcon className="w-5 h-5" />
+                                            </div>
+                                            {forensicReport.has_metadata && (
+                                                <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Metadata Scan</div>
+                                            <div className={`text-sm font-bold ${forensicReport.has_metadata ? 'text-rose-400' : 'text-slate-200'}`}>
+                                                {forensicReport.has_metadata ? 'Data Found' : 'Clean'}
+                                            </div>
+                                        </div>
+                                        {forensicReport.has_metadata && (
+                                            <div className="w-full bg-rose-950/30 h-1 rounded-full overflow-hidden">
+                                                <div className="h-full bg-rose-500 w-[100%]"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Action Area */}
+                                {forensicReport.has_metadata && (
+                                    <div className="pt-2 border-t border-white/5">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="text-xs text-slate-400 leading-relaxed">
+                                                <span className="text-rose-400 font-bold">Warning:</span> Hidden metadata contains location or device info. Scrubbing is recommended.
+                                            </div>
+                                            <button
+                                                onClick={onScrub}
+                                                disabled={isBusy}
+                                                className="flex-shrink-0 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-rose-900/20 hover:shadow-rose-900/40 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            >
+                                                {isBusy ? (
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <ShieldCheckIcon className="w-4 h-4" />
+                                                )}
+                                                <span>Scrub Data</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            {forensicReport.has_metadata && (
-                                <button
-                                    onClick={onScrub}
-                                    className="w-full text-center py-2.5 bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/40 rounded-lg text-xs font-bold transition-colors"
-                                >
-                                    Scrub Metadata
-                                </button>
-                            )}
                         </div>
                     </div>
                 )}
