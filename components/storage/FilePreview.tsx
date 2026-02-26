@@ -58,6 +58,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   
   const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [idCopied, setIdCopied] = useState(false);
   
@@ -178,13 +179,19 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   };
 
   const toggleFullScreen = () => {
-    if (mediaRef.current) {
-      if (mediaRef.current.requestFullscreen) {
-        mediaRef.current.requestFullscreen();
-      } else if ((mediaRef.current as any).webkitRequestFullscreen) {
-        (mediaRef.current as any).webkitRequestFullscreen();
-      } else if ((mediaRef.current as any).msRequestFullscreen) {
-        (mediaRef.current as any).msRequestFullscreen();
+    if (!document.fullscreenElement) {
+      if (videoContainerRef.current) {
+        if (videoContainerRef.current.requestFullscreen) {
+          videoContainerRef.current.requestFullscreen();
+        } else if ((videoContainerRef.current as any).webkitRequestFullscreen) {
+          (videoContainerRef.current as any).webkitRequestFullscreen();
+        } else if ((videoContainerRef.current as any).msRequestFullscreen) {
+          (videoContainerRef.current as any).msRequestFullscreen();
+        }
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
       }
     }
   };
@@ -382,7 +389,10 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                         </div>
                     )}
                     {previewType?.startsWith('video') && (
-                        <div className="relative w-full h-full flex items-center justify-center bg-black group/video">
+                        <div 
+                            ref={videoContainerRef}
+                            className="relative w-full h-full flex items-center justify-center bg-black group/video"
+                        >
                             <video 
                                 ref={mediaRef as any}
                                 src={previewUrl} 

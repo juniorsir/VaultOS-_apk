@@ -270,7 +270,7 @@ const App: React.FC = () => {
     <div className="relative min-h-screen pb-24 md:pb-12 animate-in fade-in duration-700 overflow-x-hidden">
       
       {/* Toast Container */}
-      <div className="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+      <div className="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none">
         {toasts.map(toast => (
           <Toast 
             key={toast.id} 
@@ -417,25 +417,22 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {activeTab === 'files' && (
-              <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className={`grid transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${hideAuthPanel ? 'grid-rows-[0fr] opacity-0 -translate-y-4 mb-0' : 'grid-rows-[1fr] opacity-100 translate-y-0 mb-6'}`}>
-                  <div className="overflow-hidden">
-                     <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
-                  </div>
+            <div className={`max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 ${activeTab === 'files' ? '' : 'hidden'}`}>
+              <div className={`grid transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${hideAuthPanel ? 'grid-rows-[0fr] opacity-0 -translate-y-4 mb-0' : 'grid-rows-[1fr] opacity-100 translate-y-0 mb-6'}`}>
+                <div className="overflow-hidden">
+                   <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
                 </div>
-
-                <StoragePanel
-                  isConnected={isConnected} isProcessing={isProcessing} onUpload={uploadFile} onDownload={downloadFile} onPlay={fetchFileBlob}
-                  onDelete={(code) => handleDeleteFromHistory(code)} getFileInfo={getFileInfo} analyzeFile={analyzeFile} scrubMetadata={scrubMetadata}
-                  onAddToHistory={handleAddToHistory} 
-                  externalFileSelection={activeFileSelection} 
-                  preserveSession={preserveSession}
-                  getCachedFile={getCachedFile}
-
-                />
               </div>
-            )}
+
+              <StoragePanel
+                isConnected={isConnected} isProcessing={isProcessing} onUpload={uploadFile} onDownload={downloadFile} onPlay={fetchFileBlob}
+                onDelete={(code) => handleDeleteFromHistory(code)} getFileInfo={getFileInfo} analyzeFile={analyzeFile} scrubMetadata={scrubMetadata}
+                onAddToHistory={handleAddToHistory} 
+                externalFileSelection={activeFileSelection} 
+                preserveSession={preserveSession}
+                getCachedFile={getCachedFile}
+              />
+            </div>
 
             {activeTab === 'mail' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

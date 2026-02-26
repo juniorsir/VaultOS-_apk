@@ -162,7 +162,7 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onClose, title = "Scan QR
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
       <div className="absolute top-6 left-0 right-0 flex justify-between items-center px-6 z-20">
         <h2 className="text-white font-bold text-lg flex items-center gap-2">
             <QrCodeIcon className="w-5 h-5 text-emerald-400" />

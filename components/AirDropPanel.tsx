@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, memo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   WifiIcon, ChainIcon, XMarkIcon, 
@@ -154,20 +155,33 @@ const AirDropPanel: React.FC = memo(() => {
 
         {/* Content Area */}
         <div className="relative z-10 flex-1 flex flex-col w-full overflow-hidden">
-            
+            <AnimatePresence mode="wait">
             {/* Error Banner */}
             {error && (
-                <div className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 animate-in fade-in slide-in-from-top-2 shadow-lg shadow-red-900/10 z-50">
+                <motion.div 
+                    key="error"
+                    initial={{ opacity: 0, y: -20, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+                    exit={{ opacity: 0, y: -20, height: 0 }}
+                    className="absolute top-0 left-0 right-0 mx-auto max-w-md p-4 bg-red-950 border border-red-500/20 rounded-2xl text-red-300 text-sm text-center mb-6 shadow-lg shadow-red-900/10 z-50"
+                >
                     <div className="flex items-center justify-center gap-2 font-bold mb-1">
                         <XMarkIcon className="w-4 h-4" /> Connection Error
                     </div>
                     {error}
-                </div>
+                </motion.div>
             )}
 
             {/* IDLE STATE */}
             {status === 'IDLE' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full h-full max-w-4xl mx-auto my-auto">
+                <motion.div 
+                    key="idle"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full h-full max-w-4xl mx-auto my-auto"
+                >
                     {/* SEND CARD */}
                     <button 
                         onClick={createSession}
@@ -225,16 +239,51 @@ const AirDropPanel: React.FC = memo(() => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             )}
 
             {/* CREATING/PAIRING STATE */}
             {(status === 'CREATING' || status === 'PAIRING') && (
-                <div className="flex flex-col items-center justify-center w-full h-full animate-in fade-in duration-500">
+                <motion.div 
+                    key="creating"
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                    className="flex flex-col items-center justify-center w-full h-full"
+                >
                     {status === 'CREATING' && !roomId ? (
-                        <div className="flex flex-col items-center gap-4">
-                            <ModernSpinner size="lg" color="#8b5cf6" />
-                            <p className="text-slate-400 font-mono text-sm">Initializing Secure Room...</p>
+                        <div className="flex flex-col items-center gap-6">
+                            <div className="relative">
+                                {/* Radar Ripples */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    {[0, 1].map((i) => (
+                                        <motion.div
+                                            key={i}
+                                            className="absolute rounded-full border border-violet-500/20 bg-violet-500/5"
+                                            initial={{ width: 60, height: 60, opacity: 0 }}
+                                            animate={{
+                                                width: [60, 200],
+                                                height: [60, 200],
+                                                opacity: [0.5, 0],
+                                            }}
+                                            transition={{
+                                                repeat: Infinity,
+                                                duration: 2,
+                                                delay: i * 1,
+                                                ease: "easeOut",
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="relative z-10 bg-slate-900 p-4 rounded-full border border-violet-500/30 shadow-xl">
+                                    <ModernSpinner size="lg" color="#8b5cf6" />
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <h3 className="text-lg font-bold text-white mb-1">Initializing Room</h3>
+                                <p className="text-slate-400 font-mono text-xs">Generating secure keys...</p>
+                            </div>
                         </div>
                     ) : (
                         <div className="flex flex-col items-center">
@@ -270,37 +319,115 @@ const AirDropPanel: React.FC = memo(() => {
                                 </div>
                             </div>
                             <div className="text-center space-y-4">
-                                <p className="text-slate-400 text-sm">Scan with peer device to connect</p>
+                                <div className="flex flex-col items-center gap-2">
+                                    <h3 className="text-white font-bold text-lg">Searching for Peers...</h3>
+                                    <p className="text-slate-400 text-sm">Scan the QR code to connect instantly</p>
+                                </div>
                                 <div className="flex items-center justify-center gap-3 px-5 py-2 rounded-full bg-slate-800/50 border border-white/5 w-fit mx-auto">
-                                    <ModernSpinner size="sm" color="#8b5cf6" />
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Waiting for peer...</span>
+                                    <div className="flex gap-1">
+                                        <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce"></span>
+                                        <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce delay-100"></span>
+                                        <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce delay-200"></span>
+                                    </div>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Broadcasting Signal</span>
                                 </div>
                             </div>
                         </div>
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* CONNECTING STATE */}
             {status === 'CONNECTING' && (
-                <div className="flex flex-col items-center justify-center h-full gap-8 animate-in fade-in zoom-in duration-300">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-ping duration-1000"></div>
-                        <div className="relative p-8 bg-slate-900 rounded-full border border-violet-500/50 shadow-[0_0_50px_rgba(139,92,246,0.3)]">
-                            <ModernSpinner size="xl" color="#a78bfa" className="absolute inset-0 scale-150 opacity-20" />
-                            <ChainIcon className="w-12 h-12 text-violet-400 animate-pulse relative z-10" />
+                <motion.div 
+                    key="connecting"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+                    className="flex flex-col items-center justify-center h-full relative overflow-hidden"
+                >
+                    {/* Radar Ripples */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        {[0, 1, 2, 3].map((i) => (
+                            <motion.div
+                                key={i}
+                                className="absolute rounded-full border border-violet-500/20 bg-violet-500/5"
+                                initial={{ width: 100, height: 100, opacity: 0 }}
+                                animate={{
+                                    width: [100, 500],
+                                    height: [100, 500],
+                                    opacity: [0.6, 0],
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 3,
+                                    delay: i * 0.8,
+                                    ease: "easeOut",
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Central Device Icon */}
+                    <div className="relative z-10 mb-8">
+                        <div className="w-24 h-24 bg-slate-900 rounded-full border border-violet-500/50 flex items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.3)] relative">
+                             <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-pulse"></div>
+                             <ChainIcon className="w-10 h-10 text-white relative z-10" />
+                             
+                             {/* Orbiting particle */}
+                             <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-[-10px] rounded-full"
+                             >
+                                <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.8)] absolute top-0 left-1/2 -translate-x-1/2"></div>
+                             </motion.div>
                         </div>
                     </div>
-                    <div className="text-center space-y-2">
-                        <h3 className="text-xl font-bold text-white">Establishing Secure Handshake</h3>
-                        <p className="text-sm text-slate-400 font-mono">Exchanging ICE candidates...</p>
+
+                    <div className="relative z-10 text-center space-y-3">
+                        <motion.h3 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-2xl font-bold text-white tracking-tight"
+                        >
+                            Establishing Connection
+                        </motion.h3>
+                        <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-sm text-slate-400 font-mono flex items-center justify-center gap-2"
+                        >
+                            <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce"></span>
+                            <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce delay-100"></span>
+                            <span className="w-1.5 h-1.5 bg-violet-400 rounded-full animate-bounce delay-200"></span>
+                            <span className="ml-2">Secure Handshake in Progress</span>
+                        </motion.p>
                     </div>
-                </div>
+                </motion.div>
             )}
 
             {/* CONNECTED / SESSION VIEW */}
             {(status === 'CONNECTED' || status === 'TRANSFERRING' || status === 'COMPLETED') && (
-                <div className="flex flex-col h-full gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <motion.div 
+                    key="connected"
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 50 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="flex flex-col h-full gap-4"
+                >
+                    {/* Success Banner */}
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        className="flex items-center justify-center gap-2 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-900/10"
+                    >
+                        <ShieldCheckIcon className="w-4 h-4" />
+                        Handshake Complete &bull; Channel Secure
+                    </motion.div>
                     
                     {/* Transfer History List */}
                     <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pr-2 custom-scrollbar">
@@ -408,8 +535,9 @@ const AirDropPanel: React.FC = memo(() => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             )}
+            </AnimatePresence>
         </div>
     </div>
   );
