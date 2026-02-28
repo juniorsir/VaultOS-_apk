@@ -215,7 +215,7 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
 
         {/* Left Panel: Controls & Address */}
         <div className="w-full md:w-1/3 flex flex-col gap-4 md:gap-6 relative z-10">
-            <div className="p-4 md:p-6 rounded-3xl bg-slate-950/40 border border-white/5 flex flex-col items-center text-center gap-4 relative overflow-hidden group">
+            <div className="flex-1 p-4 md:p-6 rounded-3xl bg-slate-950/40 border border-white/5 flex flex-col items-center text-center gap-4 relative overflow-hidden group">
                 {/* Card Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
@@ -333,15 +333,15 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
             </div>
             
             {/* Status Info Bento */}
-            <div className="flex-none md:flex-1 grid grid-cols-2 gap-3">
-                <div className="p-4 rounded-2xl bg-slate-950/30 border border-white/5 flex flex-col justify-between">
+            <div className="flex-none grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-2xl bg-slate-950/30 border border-white/5 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</span>
                     <div className="flex items-center gap-2 mt-1">
                         <div className={`w-2 h-2 rounded-full ${sessionId ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`}></div>
                         <span className={`text-xs font-bold ${sessionId ? 'text-white' : 'text-slate-500'}`}>{sessionId ? 'ONLINE' : 'OFFLINE'}</span>
                     </div>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-950/30 border border-white/5 flex flex-col justify-between">
+                <div className="p-3 rounded-2xl bg-slate-950/30 border border-white/5 flex flex-col justify-between">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Messages</span>
                     <span className="text-lg font-mono font-bold text-white leading-none mt-1">{messages.length}</span>
                 </div>

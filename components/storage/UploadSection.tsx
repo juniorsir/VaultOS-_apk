@@ -30,6 +30,7 @@ const EXPIRY_OPTIONS = [
     { value: '7d', label: '7 Days' },
     { value: '14d', label: '14 Days' },
     { value: '30d', label: '30 Days' },
+    { value: 'forever', label: 'Forever' },
     { value: 'custom', label: 'Custom Duration...' },
 ];
 
@@ -357,12 +358,38 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
           </div>
 
           {/* Expiry Timeline Slider */}
-          <div className="space-y-5 relative z-50">
-              <div className="flex justify-between items-center px-1">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Auto-Destruct Timer</label>
-                  <span className="text-xs font-mono text-violet-300 font-bold bg-violet-500/20 px-3 py-1 rounded-lg border border-violet-500/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
-                      {isCustomExpiry ? 'Custom Duration' : EXPIRY_OPTIONS.find(o => o.value === uploadExpiry)?.label}
-                  </span>
+          <div className="space-y-3 relative z-50">
+              <div className="flex justify-between items-end px-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-tight">
+                      Auto-Destruct<br/>Timer
+                  </label>
+                  <div className="flex flex-col items-center justify-center bg-violet-500/20 border border-violet-500/30 rounded-lg px-2 py-1.5 shadow-[0_0_15px_rgba(139,92,246,0.15)] min-w-[50px]">
+                      {isCustomExpiry ? (
+                          <>
+                            <span className="text-lg font-bold text-white leading-none">{customVal}</span>
+                            <span className="text-[9px] font-bold text-violet-300 uppercase leading-none mt-0.5">
+                                {customUnit === 'm' ? 'Mins' : customUnit === 'h' ? 'Hours' : 'Days'}
+                            </span>
+                          </>
+                      ) : (
+                          (() => {
+                              const label = EXPIRY_OPTIONS.find(o => o.value === uploadExpiry)?.label || '';
+                              if (uploadExpiry === 'forever') {
+                                  return (
+                                      <span className="text-xs font-bold text-white uppercase leading-none">Forever</span>
+                                  );
+                              }
+                              const [val, ...unitParts] = label.split(' ');
+                              const unit = unitParts.join(' ');
+                              return (
+                                  <>
+                                      <span className="text-lg font-bold text-white leading-none">{val}</span>
+                                      <span className="text-[9px] font-bold text-violet-300 uppercase leading-none mt-0.5">{unit}</span>
+                                  </>
+                              );
+                          })()
+                      )}
+                  </div>
               </div>
               
               <div className="relative h-14 flex items-center select-none px-0 md:px-2 group/slider">
