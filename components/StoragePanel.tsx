@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FileInfo, ForensicReport, StoredFile } from '../types';
 import { PlusIcon, SignalIcon } from './Icons';
 
@@ -99,13 +99,15 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
 
   // Auto-load from URL param 'v'
   const [isSharedLink, setIsSharedLink] = useState(false);
+  const hasAutoInspected = useRef(false);
   
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const v = params.get('v');
     if (v) {
       setIsSharedLink(true);
-      if (isConnected && !fileCode) {
+      if (isConnected && !hasAutoInspected.current) {
+        hasAutoInspected.current = true;
         setFileCode(v);
         handleInspect(v);
       }

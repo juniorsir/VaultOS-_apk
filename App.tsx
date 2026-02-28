@@ -96,6 +96,9 @@ const App: React.FC = () => {
     if (params.get('mailSession')) {
         return 'mail';
     }
+    if (params.get('v')) {
+        return 'files';
+    }
 
     if (preserveSession) {
         const saved = localStorage.getItem('vault_active_tab');
