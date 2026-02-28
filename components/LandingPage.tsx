@@ -150,7 +150,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
            <div className="h-3 lg:h-5 w-px bg-white/10"></div>
            <div className="flex items-center gap-2 text-[9px] lg:text-xs font-mono text-slate-500">
              <GlobeIcon className="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 animate-spin-slow" />
-             <span>US-EAST-1</span>
+             <span>IN-RJ-1</span>
            </div>
         </div>
       </header>

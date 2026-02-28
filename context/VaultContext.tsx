@@ -118,7 +118,7 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch (error: any) {
       const msg = error.response?.data?.detail || error.message;
       addLog(`Upload failed: ${msg}`, 'error');
-      return null;
+      throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 
@@ -143,8 +143,9 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       addLog(`Forensics report received for ${fileCode}`, 'success');
       return response.data as ForensicReport;
     } catch (error: any) {
-      addLog(`Forensics failed: ${error.message}`, 'error');
-      return null;
+      const msg = error.response?.data?.detail || error.message;
+      addLog(`Forensics failed: ${msg}`, 'error');
+      throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 
@@ -171,8 +172,9 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
       return null;
     } catch (error: any) {
-      addLog(`Metadata fetch failed: ${error.message}`, 'error');
-      return null;
+      const msg = error.response?.data?.detail || error.message;
+      addLog(`Metadata fetch failed: ${msg}`, 'error');
+      throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 
@@ -214,15 +216,16 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         } else {
              if (response.data.requires_password) {
                  addLog(`Download failed: Password required.`, 'warn');
+                 throw new Error("Password required.");
              } else {
                  addLog(`Download failed: No token returned.`, 'error');
+                 throw new Error("No token returned.");
              }
-             return false;
         }
     } catch (error: any) {
         const msg = error.response?.data?.detail || error.message;
         addLog(`Download request failed: ${msg}`, 'error');
-        return false;
+        throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 
@@ -243,10 +246,11 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
          addLog(`File ${fileCode} permanently destroyed.`, 'success');
          return true;
       }
-      return false;
+      throw new Error("Deletion failed on server.");
     } catch (error: any) {
-      addLog(`Deletion failed: ${error.message}`, 'error');
-      return false;
+      const msg = error.response?.data?.detail || error.message;
+      addLog(`Deletion failed: ${msg}`, 'error');
+      throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 
@@ -268,10 +272,11 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
          addLog(`Scrub complete. New Identity: ${newFileCode}`, 'success');
          return newFileCode;
       }
-      return null;
+      throw new Error("Scrub failed on server.");
     } catch (error: any) {
-      addLog(`Scrub failed: ${error.message}`, 'error');
-      return null;
+      const msg = error.response?.data?.detail || error.message;
+      addLog(`Scrub failed: ${msg}`, 'error');
+      throw new Error(msg);
     }
   }, [isAuthenticated, addLog]);
 

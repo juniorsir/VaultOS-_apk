@@ -42,7 +42,7 @@ const LogsPanel: React.FC<LogsPanelProps> = React.memo(({ logs, title = "System 
   const [filter, setFilter] = useState<LogType | 'all'>('all');
 
   const scrollToBottom = () => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    logsEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
   };
 
   useEffect(() => {

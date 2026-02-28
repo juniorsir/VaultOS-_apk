@@ -257,39 +257,44 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         </div>
 
                         {/* Digital Identity Card */}
-                        <div className="w-full p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-black border border-white/10 shadow-xl relative overflow-hidden group/card">
-                            <div className="absolute top-0 right-0 p-2 opacity-50">
-                                <div className="flex gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                                    <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                                    <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
+                        <div className="w-full p-5 rounded-2xl bg-slate-950 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.05)] relative overflow-hidden group/card">
+                            <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
+                            
+                            <div className="absolute top-0 right-0 p-3 opacity-50">
+                                <div className="flex gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>
                                 </div>
                             </div>
                             
-                            <div className="flex flex-col gap-1 text-left">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Identity</span>
-                                <div className="relative group/copy mt-1 w-full overflow-hidden">
+                            <div className="flex flex-col gap-2 text-left relative z-10">
+                                <span className="text-[10px] font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-2">
+                                    <ShieldExclamationIcon className="w-3 h-3" />
+                                    Active Identity
+                                </span>
+                                <div className="relative group/copy mt-1 w-full">
                                     <button 
                                         onClick={handleCopyEmail}
-                                        className="w-full text-left font-mono text-sm md:text-base text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-2"
+                                        className="w-full text-left font-mono text-sm md:text-base text-emerald-400 hover:text-emerald-300 transition-colors flex items-center justify-between bg-black/50 p-3 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
                                     >
-                                        <span className="truncate flex-1">{email || 'Loading...'}</span>
-                                        <span className="opacity-0 group-hover/card:opacity-100 transition-opacity text-[10px] bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-300 shrink-0">COPY</span>
+                                        <span className="truncate flex-1 tracking-wider">{email || 'Loading...'}</span>
+                                        <span className="opacity-0 group-hover/card:opacity-100 transition-opacity text-[10px] bg-emerald-500/20 px-2 py-1 rounded text-emerald-300 shrink-0 font-bold tracking-widest ml-2">COPY</span>
                                     </button>
                                     {copied && (
-                                        <div className="absolute -top-8 left-0 px-2 py-1 bg-emerald-500 text-slate-900 text-[10px] font-bold rounded animate-in fade-in slide-in-from-bottom-2 shadow-lg z-20">
+                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-emerald-500 text-slate-900 text-[10px] font-bold rounded animate-in fade-in slide-in-from-bottom-2 shadow-lg z-20 whitespace-nowrap">
                                             COPIED TO CLIPBOARD
                                         </div>
                                     )}
                                 </div>
                             </div>
                             
-                            <div className="mt-4 pt-3 border-t border-white/5 flex justify-between items-end">
-                                <div className="flex items-center gap-1.5">
+                            <div className="mt-5 pt-4 border-t border-emerald-500/10 flex justify-between items-end relative z-10">
+                                <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
-                                    <span className="text-[10px] font-medium text-emerald-500/80">LIVE CONNECTION</span>
+                                    <span className="text-[10px] font-mono text-emerald-500/80 tracking-widest">LIVE_CONNECTION</span>
                                 </div>
-                                <EnvelopeIcon className="w-8 h-8 text-white/5 absolute bottom-2 right-2" />
+                                <EnvelopeIcon className="w-10 h-10 text-emerald-500/5 absolute bottom-2 right-2 pointer-events-none" />
                             </div>
                         </div>
 
@@ -344,9 +349,9 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
         </div>
 
         {/* Right Panel: Inbox & Content */}
-        <div className="w-full md:flex-1 min-h-[500px] md:min-h-0 rounded-3xl bg-slate-950/40 border border-white/5 overflow-hidden flex flex-col relative z-10">
+        <div className="w-full md:flex-1 min-h-[300px] md:min-h-0 rounded-3xl bg-slate-950/40 border border-white/5 overflow-hidden flex flex-col relative z-10">
             {!sessionId ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-600 p-8 text-center">
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-600 p-8 text-center">
                     <div className="w-24 h-24 rounded-full bg-slate-900/50 border border-white/5 flex items-center justify-center mb-6 relative">
                         <div className="absolute inset-0 rounded-full border border-white/5 animate-ping opacity-20"></div>
                         <LockIcon className="w-10 h-10 opacity-20" />
@@ -368,11 +373,18 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         {/* Message List */}
                         <div className={`w-full md:w-1/3 border-r border-white/5 overflow-y-auto custom-scrollbar ${selectedMessage ? 'hidden md:block' : 'block'} bg-slate-900/20`}>
                             {messages.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-slate-600 p-8 gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center">
-                                        <EnvelopeIcon className="w-6 h-6 opacity-20" />
+                                <div className="h-full flex flex-col items-center justify-center text-emerald-500/40 p-8 gap-6 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_70%)]"></div>
+                                    <div className="relative w-24 h-24 flex items-center justify-center">
+                                        <div className="absolute inset-0 border-2 border-emerald-500/20 rounded-full"></div>
+                                        <div className="absolute inset-2 border border-emerald-500/30 rounded-full animate-[spin_4s_linear_infinite] border-t-emerald-500"></div>
+                                        <div className="absolute inset-6 border border-emerald-500/20 rounded-full animate-[spin_3s_linear_infinite_reverse] border-b-emerald-500"></div>
+                                        <EnvelopeIcon className="w-6 h-6 text-emerald-500/50 animate-pulse" />
                                     </div>
-                                    <span className="text-xs font-medium">Waiting for incoming mail...</span>
+                                    <div className="flex flex-col items-center gap-1 relative z-10">
+                                        <span className="text-xs font-mono font-bold tracking-widest text-emerald-500/70">AWAITING_TRANSMISSION</span>
+                                        <span className="text-[10px] font-mono text-emerald-500/40">Listening on secure channel...</span>
+                                    </div>
                                 </div>
                             ) : (
                                 messages.map((msg) => (
@@ -383,12 +395,12 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                                     >
                                         <div className="flex justify-between items-start mb-1.5">
                                             <div className="flex items-center gap-2 min-w-0">
-                                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedMessage?.id === msg.id ? 'bg-emerald-500' : 'bg-slate-600 group-hover:bg-emerald-400'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${selectedMessage?.id === msg.id ? 'bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]' : 'bg-slate-600 group-hover:bg-emerald-400'}`}></div>
                                                 <span className={`text-xs font-bold truncate ${selectedMessage?.id === msg.id ? 'text-white' : 'text-slate-300'}`} title={msg.from}>
                                                     {msg.from}
                                                 </span>
                                             </div>
-                                            <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-2">
+                                            <span className={`text-[10px] font-mono shrink-0 ml-2 ${selectedMessage?.id === msg.id ? 'text-emerald-400' : 'text-slate-500'}`}>
                                                 {msg.date ? new Date(msg.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Now'}
                                             </span>
                                         </div>
@@ -407,7 +419,8 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                         <div className={`w-full md:w-2/3 bg-slate-900/40 flex flex-col ${!selectedMessage ? 'hidden md:flex' : 'flex'}`}>
                             {selectedMessage ? (
                                 <>
-                                    <div className="p-6 border-b border-white/5 flex items-start gap-4 bg-slate-900/50">
+                                    <div className="p-6 border-b border-white/5 flex items-start gap-4 bg-slate-900/80 relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                                         <button 
                                             onClick={() => setSelectedMessage(null)}
                                             className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
@@ -415,15 +428,26 @@ const TempMailPanel: React.FC<TempMailPanelProps> = memo(({
                                             <XMarkIcon className="w-5 h-5" />
                                         </button>
                                         <div className="flex-1 min-w-0">
-                                            <h2 className="text-lg md:text-xl font-bold text-white mb-2 break-words leading-tight">{selectedMessage.subject}</h2>
-                                            <div className="flex items-center gap-3 text-xs text-slate-400">
-                                                <div className="flex items-center gap-2 px-2 py-1 rounded bg-white/5 border border-white/5">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                    <span className="truncate max-w-[150px]">{selectedMessage.from}</span>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-mono font-bold text-emerald-400 tracking-widest uppercase">
+                                                    Decrypted
                                                 </div>
-                                                <span className="font-mono text-slate-600">
-                                                     {selectedMessage.date ? new Date(selectedMessage.date).toLocaleString() : ''}
-                                                </span>
+                                                <div className="px-2 py-0.5 rounded bg-slate-800 border border-white/5 text-[9px] font-mono text-slate-400 tracking-widest uppercase">
+                                                    ID: {selectedMessage.id.substring(0, 8)}
+                                                </div>
+                                            </div>
+                                            <h2 className="text-lg md:text-xl font-bold text-white mb-3 break-words leading-tight">{selectedMessage.subject}</h2>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-xs text-slate-400">
+                                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/5">
+                                                    <span className="text-slate-500 font-mono text-[10px] uppercase">FROM:</span>
+                                                    <span className="truncate max-w-[200px] text-slate-300 font-medium">{selectedMessage.from}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/5">
+                                                    <span className="text-slate-500 font-mono text-[10px] uppercase">TIME:</span>
+                                                    <span className="font-mono text-slate-300">
+                                                         {selectedMessage.date ? new Date(selectedMessage.date).toLocaleString() : ''}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

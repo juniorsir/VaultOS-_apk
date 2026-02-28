@@ -29,9 +29,14 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleApiError = (error: any, operation: string) => {
-    const errorMessage = error instanceof AxiosError
+    let errorMessage = error instanceof AxiosError
         ? error.response?.data?.detail || error.message
         : error.message;
+
+    if (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('not found')) {
+        errorMessage = "This file might be deleted";
+    }
+
     addLog(`${operation} failure: ${errorMessage}`, 'error');
     onNotify?.(`${operation} Failed: ${errorMessage}`, 'error');
     return errorMessage;
@@ -54,7 +59,7 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
       }
       return code;
     } catch (error) {
-      onNotify?.('Upload failed', 'error');
+      handleApiError(error, 'Upload');
       return null;
     } finally { 
       setIsProcessing(false); 
@@ -109,8 +114,12 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
     setIsProcessing(true);
     try {
         return await contextRunForensics(fileCode);
-    } catch (error) { return null; }
-    finally { setIsProcessing(false); }
+    } catch (error) { 
+        handleApiError(error, 'Forensics');
+        return null; 
+    } finally { 
+        setIsProcessing(false); 
+    }
   }, [isConnected, contextRunForensics]);
 
   const scrubMetadata = useCallback(async (fileCode: string): Promise<string | null> => {
@@ -191,7 +200,14 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
         return { url: downloadUrl, type };
     } catch (error: any) { 
         console.error("Preview fetch failed:", error);
-        return { error: error.message || "Failed to load preview" }; 
+        let msg = error instanceof AxiosError 
+            ? error.response?.data?.detail || error.message 
+            : error.message || "Failed to load preview";
+            
+        if (typeof msg === 'string' && msg.toLowerCase().includes('not found')) {
+            msg = "This file might be deleted";
+        }
+        return { error: msg }; 
     }
   }, [client, isConnected, getFileInfo]);
 

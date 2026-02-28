@@ -13,14 +13,13 @@ import ModernSpinner from './components/common/ModernSpinner';
 const AuthPanel = lazy(() => import('./components/AuthPanel'));
 const StoragePanel = lazy(() => import('./components/StoragePanel'));
 const LogsPanel = lazy(() => import('./components/LogsPanel'));
-const DashboardPanel = lazy(() => import('./components/DashboardPanel'));
 const LandingPage = lazy(() => import('./components/LandingPage'));
 const FileHistoryPanel = lazy(() => import('./components/FileHistoryPanel'));
 const TempMailPanel = lazy(() => import('./components/TempMailPanel'));
 const AirDropPanel = lazy(() => import('./components/AirDropPanel'));
 
 
-type TabType = 'files' | 'history' | 'status' | 'activity' | 'mail' | 'airlink';
+type TabType = 'files' | 'history' | 'activity' | 'mail' | 'airlink';
 
 interface ToastData {
   id: string;
@@ -33,7 +32,6 @@ const NAV_ITEMS = [
   { id: 'mail', label: 'Secure Mail', icon: EnvelopeIcon },
   { id: 'airlink', label: 'AirLink', icon: WifiIcon },
   { id: 'history', label: 'Vault History', icon: ClockIcon },
-  { id: 'status', label: 'System Status', icon: LayoutIcon },
   { id: 'activity', label: 'Activity Log', icon: TerminalIcon },
 ];
 
@@ -101,7 +99,7 @@ const App: React.FC = () => {
 
     if (preserveSession) {
         const saved = localStorage.getItem('vault_active_tab');
-        if (saved && ['files', 'history', 'status', 'activity', 'mail', 'airlink'].includes(saved)) {
+        if (saved && ['files', 'history', 'activity', 'mail', 'airlink'].includes(saved)) {
             return saved as TabType;
         }
     }
@@ -321,20 +319,22 @@ const App: React.FC = () => {
       </div>
 
       {/* Toast Container */}
-      <div className="fixed top-6 right-6 z-[300] flex flex-col gap-3 pointer-events-none">
-        {toasts.map(toast => (
-          <Toast 
-            key={toast.id} 
-            id={toast.id} 
-            message={toast.message} 
-            type={toast.type} 
-            onClose={removeToast} 
-          />
-        ))}
+      <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[300] flex flex-col gap-3 pointer-events-none items-end">
+        <AnimatePresence mode="popLayout">
+          {toasts.map(toast => (
+            <Toast 
+              key={toast.id} 
+              id={toast.id} 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={removeToast} 
+            />
+          ))}
+        </AnimatePresence>
       </div>
 
       <div className="max-w-6xl lg:max-w-7xl xl:max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8 pt-4 md:pt-6 lg:pt-10 relative z-50">
-        <header className="mb-10 md:mb-16 lg:mb-24 flex flex-col lg:flex-row lg:items-center justify-between gap-6 lg:gap-4">
+        <header className="mb-8 md:mb-12 lg:mb-16 flex flex-col items-center lg:flex-row lg:items-center justify-between gap-6 lg:gap-4">
           <div className="flex items-center justify-between w-full lg:w-1/4">
             <div 
               className="flex items-center gap-3 lg:gap-5 group cursor-pointer" 
@@ -368,7 +368,7 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden md:block relative w-full lg:w-auto max-w-full group z-50 min-w-0">
+          <div className="hidden md:block relative w-fit max-w-full group z-50 min-w-0">
             {/* Visual Container Background */}
             <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-xl rounded-full border border-white/10 shadow-2xl pointer-events-none ring-1 ring-white/5"></div>
             
@@ -383,7 +383,7 @@ const App: React.FC = () => {
                     ref={index === 0 ? firstItemRef : index === NAV_ITEMS.length - 1 ? lastItemRef : null}
                     onClick={() => setActiveTab(item.id as TabType)}
                     aria-label={`Switch to ${item.label}`}
-                    className={`flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-3 px-4 py-2 lg:px-7 lg:py-3.5 rounded-full text-[11px] md:text-xs lg:text-[13px] font-bold transition-all duration-300 ease-out whitespace-nowrap relative group/item ${
+                    className={`flex-shrink-0 md:flex-none flex items-center justify-center gap-1.5 lg:gap-3 px-4 py-2 lg:px-6 lg:py-3 rounded-full text-xs md:text-sm font-bold transition-all duration-300 ease-out whitespace-nowrap relative group/item ${
                       activeTab === item.id 
                         ? 'text-white' 
                         : 'text-slate-400 hover:text-slate-200 active:scale-95'
@@ -469,14 +469,7 @@ const App: React.FC = () => {
 
         <main className="relative">
           <Suspense fallback={<LoadingFallback />}>
-            {activeTab === 'status' && (
-              <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                 <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
-                 <DashboardPanel isConnected={isConnected} logsCount={logs.length} preserveSession={preserveSession} onTogglePreserve={() => setPreserveSession(prev => !prev)} />
-              </div>
-            )}
-
-            <div className={`max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 ${activeTab === 'files' ? '' : 'hidden'}`}>
+            <div className={`w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 ${activeTab === 'files' ? '' : 'hidden'}`}>
               <div className={`grid transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${hideAuthPanel ? 'grid-rows-[0fr] opacity-0 -translate-y-4 mb-0' : 'grid-rows-[1fr] opacity-100 translate-y-0 mb-6'}`}>
                 <div className="overflow-hidden">
                    <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
@@ -506,7 +499,7 @@ const App: React.FC = () => {
             )}
 
             {activeTab === 'history' && (
-               <div className="max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <FileHistoryPanel files={storedFiles} onSelect={handleSelectFromHistory} onDelete={handleDeleteFromHistory} />
                </div>
             )}
@@ -529,8 +522,8 @@ const App: React.FC = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-6 pt-2 bg-gradient-to-t from-[#020617] via-[#020617]/90 to-transparent">
-          <nav className="flex items-center justify-around bg-white/[0.05] backdrop-blur-2xl border border-white/10 rounded-2xl p-1.5 shadow-2xl shadow-black/50 ring-1 ring-white/5">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 pb-6 pt-8 bg-gradient-to-t from-[#020617] via-[#020617]/95 to-transparent pointer-events-none">
+          <nav className="flex items-center justify-between bg-slate-950/90 backdrop-blur-xl border border-white/10 rounded-[24px] px-2 py-2 shadow-2xl shadow-black/50 ring-1 ring-white/5 mx-auto max-w-md pointer-events-auto">
               {NAV_ITEMS.map((item) => (
                   <button
                       key={item.id}
@@ -539,28 +532,28 @@ const App: React.FC = () => {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       aria-label={`Switch to ${item.label}`}
-                      className={`flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-all duration-300 relative ${
+                      className={`flex flex-col items-center justify-center gap-1.5 w-[4.5rem] h-14 rounded-[16px] transition-all duration-300 relative group ${
                           activeTab === item.id 
-                              ? 'text-violet-400' 
-                              : 'text-slate-500 active:scale-95'
+                              ? 'text-violet-300' 
+                              : 'text-slate-500 hover:text-slate-300 active:scale-95'
                       }`}
                   >
                       {activeTab === item.id && (
                           <motion.div 
                               layoutId="activeTabMobile"
-                              className="absolute inset-0 bg-violet-500/10 rounded-xl z-0"
+                              className="absolute inset-0 bg-violet-500/15 border border-violet-500/30 rounded-[16px] z-0 shadow-[0_0_15px_rgba(139,92,246,0.15)]"
+                              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                           />
                       )}
-                      <item.icon className={`w-5 h-5 relative z-10 transition-transform duration-300 ${activeTab === item.id ? 'scale-110' : 'scale-100'}`} />
-                      <span className="text-[8px] font-black uppercase tracking-tighter relative z-10">
+                      <item.icon className={`w-5 h-5 relative z-10 transition-transform duration-300 ${activeTab === item.id ? 'scale-110 drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]' : 'scale-100'}`} />
+                      <span className={`text-[9px] font-bold uppercase tracking-wider relative z-10 transition-all duration-300 ${activeTab === item.id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`}>
                           {item.id === 'files' ? 'Files' : 
                            item.id === 'mail' ? 'Mail' : 
                            item.id === 'airlink' ? 'Link' : 
-                           item.id === 'history' ? 'Archive' : 
-                           item.id === 'status' ? 'System' : 'Logs'}
+                           item.id === 'history' ? 'Archive' : 'Logs'}
                       </span>
                       {item.id === 'mail' && hasUnreadMail && (
-                          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20"></span>
+                          <span className="absolute top-1.5 right-3 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)] z-20 border border-slate-900"></span>
                       )}
                   </button>
               ))}

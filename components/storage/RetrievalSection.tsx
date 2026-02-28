@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   ChainIcon, CodeIcon, LockIcon, 
-  DownloadIcon, PlayIcon, EyeIcon, TrashIcon 
+  DownloadIcon, PlayIcon, EyeIcon, TrashIcon,
+  QrCodeIcon, XMarkIcon
 } from '../Icons';
 import ModernSpinner from '../common/ModernSpinner';
 import SineWaveProgress from '../common/SineWaveProgress';
@@ -30,6 +32,7 @@ export function RetrievalSection({
   onDownload, onPlay, onInspect, onDelete
 }: RetrievalSectionProps) {
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
 
   const copyShareLink = async () => {
     if (!fileCode) return;
@@ -61,12 +64,37 @@ export function RetrievalSection({
   };
 
   return (
-    <div className="relative p-6 rounded-[30px] border border-white/10 bg-white/[0.03] backdrop-blur-xl shadow-2xl overflow-hidden group">
-      <div className="absolute -top-20 -right-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+    <div className="relative p-6 rounded-[30px] border border-white/5 bg-white/[0.02] backdrop-blur-sm flex flex-col h-full">
       
+      {/* QR Code Modal */}
+      {showQr && fileCode && (
+        <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center animate-in fade-in duration-300 px-8 rounded-[30px]">
+           <button 
+             onClick={() => setShowQr(false)}
+             className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+           >
+             <XMarkIcon className="w-5 h-5" />
+           </button>
+           
+           <div className="bg-white p-4 rounded-2xl shadow-2xl shadow-violet-500/20 mb-4">
+             <QRCodeSVG 
+               value={`${window.location.origin}${window.location.pathname}?v=${fileCode}`}
+               size={180}
+               level="H"
+               includeMargin={false}
+             />
+           </div>
+           
+           <h3 className="text-white font-bold text-lg mb-1">Scan to Access</h3>
+           <p className="text-slate-400 text-xs text-center max-w-[200px]">
+             Use a secure scanner to retrieve this file on another device.
+           </p>
+        </div>
+      )}
+
       {/* Download Progress Overlay */}
       {isBusy && activeOperation === 'download' && (
-         <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center animate-in fade-in duration-300 px-8">
+         <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center animate-in fade-in duration-300 px-8 rounded-[30px]">
              <div className="w-full max-w-sm space-y-5">
                  <div className="flex justify-between items-end text-slate-300 px-1">
                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] animate-pulse">Retrieving Data</span>
@@ -89,23 +117,32 @@ export function RetrievalSection({
          </div>
       )}
 
-      <div className="relative z-10 space-y-5">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-slate-400 flex items-center gap-2">
-               Download or Inspect File
-            </label>
+      <div className="relative z-10 flex flex-col h-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white tracking-tight">Retrieve File</h2>
             {fileCode && (
-              <button 
-                onClick={copyShareLink}
-                className="flex items-center gap-1.5 px-3 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 rounded-full text-[10px] font-bold uppercase tracking-wider border border-violet-500/20 transition-all active:scale-95 shadow-sm hover:shadow-violet-500/20"
-              >
-                <ChainIcon className="w-3 h-3" />
-                {shareLinkCopied ? 'Copied' : 'Share'}
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setShowQr(true)}
+                  className="flex items-center justify-center w-12 h-12 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 rounded-full border border-violet-500/20 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-md hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:border-violet-500/50 group overflow-hidden relative"
+                  aria-label="Show QR Code"
+                >
+                  <div className="absolute inset-0 bg-violet-400/10 scale-0 group-hover:scale-100 rounded-full transition-transform duration-300" />
+                  <QrCodeIcon className="w-6 h-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 relative z-10" />
+                </button>
+                <button 
+                  onClick={copyShareLink}
+                  className="flex items-center gap-2 px-5 py-3 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 rounded-full text-xs font-bold uppercase tracking-wider border border-violet-500/20 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-md hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:border-violet-500/50 group overflow-hidden relative"
+                >
+                  <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-0 pointer-events-none" />
+                  <ChainIcon className="w-4 h-4 group-hover:scale-110 transition-transform relative z-10" />
+                  <span className="relative z-10">{shareLinkCopied ? 'Copied' : 'Share Link'}</span>
+                </button>
+              </div>
             )}
           </div>
 
-          <div className="space-y-6">
+          <div className="flex-grow flex flex-col justify-center space-y-6">
                <div className="space-y-1.5">
                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">File Code</label>
                    <div className="relative group/input">
@@ -123,15 +160,41 @@ export function RetrievalSection({
                       </div>
                    </div>
                </div>
+               
+               <div className="space-y-1.5">
+                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">Decryption Password (If Required)</label>
+                   <div className="relative group/input">
+                       <input
+                        type="password"
+                        value={downloadPassword}
+                        onChange={(e) => setDownloadPassword(e.target.value)}
+                        placeholder="Enter password..."
+                        disabled={!isConnected}
+                        aria-label="Password"
+                        className="w-full h-12 pl-10 pr-4 bg-black/20 border border-white/5 rounded-xl text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/50 focus:bg-slate-900/50 focus:ring-1 focus:ring-violet-500/20 font-mono text-sm shadow-inner transition-all duration-300"
+                      />
+                      <div className="absolute left-3 top-3.5 text-slate-600 group-focus-within/input:text-violet-400 transition-colors">
+                          <LockIcon className="w-5 h-5" />
+                      </div>
+                   </div>
+               </div>
           </div>
           
-          <div className="grid grid-cols-4 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 mt-auto">
               <button
                 onClick={onDownload}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="group relative h-24 md:h-32 lg:h-40 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 aria-label="Download File"
               >
+                {/* Hover Shimmer */}
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20 pointer-events-none" />
+                
+                {/* Loading Pulse Background */}
+                {isBusy && activeOperation === 'download' && (
+                    <div className="absolute inset-0 bg-violet-500/10 animate-pulse z-0" />
+                )}
+
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 via-fuchsia-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-violet-500/50 group-hover:bg-violet-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
                     {isBusy && activeOperation === 'download' ? (
@@ -146,9 +209,17 @@ export function RetrievalSection({
               <button
                 onClick={onPlay}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="group relative h-24 md:h-32 lg:h-40 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(16,185,129,0.3)] hover:border-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 aria-label="Play Media"
               >
+                {/* Hover Shimmer */}
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20 pointer-events-none" />
+                
+                {/* Loading Pulse Background */}
+                {isBusy && activeOperation === 'play' && (
+                    <div className="absolute inset-0 bg-emerald-500/10 animate-pulse z-0" />
+                )}
+
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-teal-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-emerald-500/50 group-hover:bg-emerald-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
                     {isBusy && activeOperation === 'play' ? (
@@ -163,9 +234,17 @@ export function RetrievalSection({
               <button
                 onClick={onInspect}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(56,189,248,0.3)] hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="group relative h-24 md:h-32 lg:h-40 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(56,189,248,0.3)] hover:border-sky-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 aria-label="Inspect File Metadata"
               >
+                {/* Hover Shimmer */}
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20 pointer-events-none" />
+                
+                {/* Loading Pulse Background */}
+                {isBusy && activeOperation === 'inspect' && (
+                    <div className="absolute inset-0 bg-sky-500/10 animate-pulse z-0" />
+                )}
+
                 <div className="absolute inset-0 bg-gradient-to-br from-sky-600/10 via-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-sky-500/50 group-hover:bg-sky-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
                     {isBusy && activeOperation === 'inspect' ? (
@@ -180,9 +259,17 @@ export function RetrievalSection({
               <button
                 onClick={onDelete}
                 disabled={!isConnected || !fileCode || isBusy}
-                className="group relative h-24 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(244,63,94,0.3)] hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="group relative h-24 md:h-32 lg:h-40 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(244,63,94,0.3)] hover:border-rose-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 aria-label="Delete File"
               >
+                {/* Hover Shimmer */}
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-20 pointer-events-none" />
+                
+                {/* Loading Pulse Background */}
+                {isBusy && activeOperation === 'scrub' && (
+                    <div className="absolute inset-0 bg-rose-500/10 animate-pulse z-0" />
+                )}
+
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-600/10 via-red-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative z-10 w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-rose-500/50 group-hover:bg-rose-500/20 transition-all duration-300 group-hover:scale-110 shadow-lg">
                     {isBusy && activeOperation === 'scrub' ? (

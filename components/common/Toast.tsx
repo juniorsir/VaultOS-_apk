@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheckIcon, ShieldExclamationIcon, XMarkIcon, TrashIcon } from '../Icons';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warn';
@@ -27,21 +28,31 @@ const Toast: React.FC<ToastProps> = ({ id, message, type, onClose }) => {
   const { icon: Icon, color, border, bg } = config[type];
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl ${border} ${bg} shadow-2xl animate-in slide-in-from-right-8 fade-in duration-300 pointer-events-auto min-w-[300px]`}>
-      <div className={`p-2 rounded-xl bg-black/20 ${color}`}>
+    <motion.div 
+      layout
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+      className={`relative flex items-center gap-3 px-4 py-3 rounded-2xl border ${border} bg-slate-900/90 backdrop-blur-md shadow-[0_8px_30px_rgb(0,0,0,0.12)] pointer-events-auto min-w-[300px] overflow-hidden group`}
+    >
+      {/* Subtle background tint based on type */}
+      <div className={`absolute inset-0 ${bg} opacity-20 pointer-events-none`} />
+      
+      <div className={`relative p-2 rounded-xl bg-slate-950/50 ${color} ring-1 ring-white/5`}>
         <Icon className="w-5 h-5" />
       </div>
-      <div className="flex-1 text-sm font-medium text-white/90">
+      
+      <div className="relative flex-1 text-sm font-medium text-slate-200">
         {message}
       </div>
+      
       <button 
         onClick={() => onClose(id)}
-        className="p-1 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition-colors"
+        className="relative p-1.5 hover:bg-white/10 rounded-lg text-slate-500 hover:text-white transition-colors"
       >
         <XMarkIcon className="w-4 h-4" />
       </button>
-      <div className="absolute bottom-0 left-0 h-0.5 bg-white/20 animate-[shimmer_5s_linear_forwards] rounded-full w-full origin-left"></div>
-    </div>
+    </motion.div>
   );
 };
 

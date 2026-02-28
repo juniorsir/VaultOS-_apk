@@ -14,7 +14,7 @@ interface StoragePanelProps {
   onUpload: (file: File, password: string, expiry: string, onProgress: (progress: number) => void) => Promise<string | null>;
   onDownload: (fileCode: string, password: string, onProgress?: (progress: number) => void) => void;
   onPlay: (fileCode: string, password: string) => Promise<{ url: string, type: string } | { error: string } | null>;
-  onDelete: (fileCode: string) => void;
+  onDelete: (fileCode: string) => Promise<void>;
   getFileInfo: (fileCode: string) => Promise<FileInfo | null>;
   analyzeFile: (fileCode: string) => Promise<ForensicReport | null>;
   scrubMetadata: (fileCode: string) => Promise<string | null>;
@@ -144,16 +144,22 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
   
   const handleDownloadAction = () => {
       // Trigger background download
-      // We don't set activeOperation to 'download' locally to avoid blocking the UI with the overlay.
-      // The global widget will handle progress.
+      setActiveOperation('download');
       onDownload(fileCode, downloadPassword, (progress) => {
-          // Optional: track local progress if needed, but we are skipping the overlay
+          setDownloadProgress(progress);
       });
   };
 
   const handlePlayAction = async () => {
       // Direct play from Retrieval now also opens inspector for consistency
-      handleInspect(fileCode);
+      setLocalIsProcessing(true);
+      setActiveOperation('play');
+      try {
+        await handleInspect(fileCode, 'play');
+      } finally {
+        setLocalIsProcessing(false);
+        setActiveOperation(null);
+      }
   };
 
   const closePlayer = () => {
@@ -163,46 +169,63 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
       setMediaState({ url: null, type: null });
   };
 
-  const handleDeleteAction = () => {
+  const handleDeleteAction = async () => {
       setActiveOperation('scrub');
-      onDelete(fileCode);
-      setFileInfo(null);
-      setForensicReport(null);
+      setLocalIsProcessing(true);
+      try {
+        await onDelete(fileCode);
+        setFileInfo(null);
+        setForensicReport(null);
+      } finally {
+        setLocalIsProcessing(false);
+        setActiveOperation(null);
+      }
   };
 
-  const handleInspect = async (codeOverride?: string) => {
+  const handleInspect = async (codeOverride?: string, operation: 'inspect' | 'play' = 'inspect') => {
       const code = typeof codeOverride === 'string' ? codeOverride : fileCode;
       if (!code) return;
 
-      setActiveOperation('inspect');
+      setActiveOperation(operation);
+      setLocalIsProcessing(true);
 
-      // Check cache first
-      const cached = getCachedFile ? getCachedFile(code) : undefined;
-      let cachedReport = cached?.forensicReport || null;
+      try {
+        // Check cache first
+        const cached = getCachedFile ? getCachedFile(code) : undefined;
+        let cachedReport = cached?.forensicReport || null;
 
-      // Always fetch fresh file info to ensure file exists and metadata is up to date
-      const info = await getFileInfo(code);
-      
-      if (info) {
-          // If we don't have a cached report, we must analyze
-          if (!cachedReport) {
-             cachedReport = await analyzeFile(code);
-          } else {
-             console.log("Using cached forensic report for", code);
-          }
+        // Always fetch fresh file info to ensure file exists and metadata is up to date
+        const info = await getFileInfo(code);
+        
+        if (info) {
+            // If we don't have a cached report, we must analyze
+            if (!cachedReport) {
+               cachedReport = await analyzeFile(code);
+            } else {
+               console.log("Using cached forensic report for", code);
+            }
 
-          // Update history with fresh info + report
-          onAddToHistory({
-            code: code,
-            filename: info.filename,
-            size: info.size,
-            date: cached ? cached.date : new Date(),
-            type: info.type || 'unknown',
-            forensicReport: cachedReport || undefined
-          });
+            // Update history with fresh info + report
+            onAddToHistory({
+              code: code,
+              filename: info.filename,
+              size: info.size,
+              date: cached ? cached.date : new Date(),
+              type: info.type || 'unknown',
+              forensicReport: cachedReport || undefined
+            });
 
-          setPreviewFile({ code, info, report: cachedReport });
-          setView('preview');
+            setPreviewFile({ code, info, report: cachedReport });
+            setView('preview');
+        } else {
+            setActiveOperation(null);
+        }
+      } finally {
+        setLocalIsProcessing(false);
+        // Note: We don't reset activeOperation here if successful, 
+        // as we might want to keep some state, but since view switches, it's fine.
+        // Actually, better to reset it to avoid stuck states if view switch fails or logic changes.
+        if (view !== 'preview') setActiveOperation(null); 
       }
   };
 
@@ -235,6 +258,8 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
                   forensicReport: report || undefined
               });
           }
+      } else {
+          setActiveOperation(null);
       }
       
       setLocalIsProcessing(false);
@@ -245,10 +270,7 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
   };
 
   return (
-    <div className="relative p-6 md:p-8 lg:p-12 rounded-[40px] overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/20 bg-white/[0.03] backdrop-blur-xl transition-all duration-500">
-      
-      {/* Subtle Grid Pattern Overlay - kept for texture but reduced opacity */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-30"></div>
+    <div className="relative transition-all duration-500">
       
       {/* Legacy Media Player Overlay (only used if triggered via other means) */}
       {mediaState.url && mediaState.type && (
@@ -260,64 +282,83 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
       )}
 
       {/* Main Content Area - Swaps between Dashboard Grid and Preview Inspector */}
-      <div className="relative z-10 pt-6 md:pt-8">
-        {view === 'preview' && (
-          <div className="flex items-center justify-between mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setView('default')} className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors" aria-label="Back to Dashboard">
-                <PlusIcon className="w-6 h-6 transform rotate-45" />
-              </button>
-              <h2 className="text-xl font-bold text-white tracking-wider"><span className="text-slate-500">/</span> INSPECTOR</h2>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-mono text-emerald-400">
-              <SignalIcon className="w-5 h-5" />
-              <span>{latency}ms</span>
-            </div>
-          </div>
+      <div className="relative z-10">
+        {view === 'preview' && previewFile && (
+           <div className="relative p-6 md:p-8 lg:p-12 rounded-[40px] overflow-hidden border border-white/10 shadow-2xl shadow-violet-900/20 bg-white/[0.03] backdrop-blur-xl animate-in fade-in zoom-in duration-300">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-30"></div>
+              
+              <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setView('default')} className="p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors" aria-label="Back to Dashboard">
+                        <PlusIcon className="w-6 h-6 transform rotate-45" />
+                      </button>
+                      <h2 className="text-xl font-bold text-white tracking-wider"><span className="text-slate-500">/</span> INSPECTOR</h2>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-mono text-emerald-400">
+                      <SignalIcon className="w-5 h-5" />
+                      <span>{latency}ms</span>
+                    </div>
+                  </div>
+
+                  <FilePreview 
+                    onBack={() => setView('default')}
+                    fileCode={previewFile.code}
+                    fileInfo={previewFile.info}
+                    forensicReport={previewFile.report}
+                    isBusy={isBusy}
+                    onDownload={handleDownloadAction}
+                    onDelete={handleDeleteAction}
+                    onScrub={handleScrubAction}
+                    onPreview={handlePreviewRequest}
+                    isSharedLink={isSharedLink}
+                  />
+              </div>
+           </div>
         )}
 
-        {view === 'default' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 animate-in fade-in slide-in-from-left-4 duration-500">
+        {view === 'default' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-left-4 duration-500">
               {/* Left Column: Upload */}
-              <UploadSection 
-                isConnected={isConnected}
-                isProcessing={isProcessing}
-                onUpload={onUpload}
-                onUploadComplete={handleUploadComplete}
-                preserveSession={preserveSession}
-              />
+              <div className="relative p-6 rounded-[30px] border border-white/5 bg-white/[0.02] backdrop-blur-sm flex flex-col h-full">
+                  
+                  <div className="relative z-10 flex flex-col h-full">
+                      <div className="flex items-center gap-3 mb-6">
+                          <h2 className="text-xl font-bold text-white tracking-tight">Secure Upload</h2>
+                      </div>
+                      
+                      <div className="flex-grow flex flex-col justify-center">
+                          <UploadSection 
+                            isConnected={isConnected}
+                            isProcessing={isProcessing}
+                            onUpload={onUpload}
+                            onUploadComplete={handleUploadComplete}
+                            preserveSession={preserveSession}
+                          />
+                      </div>
+                  </div>
+              </div>
 
               {/* Right Column: Retrieval */}
-              <div className="space-y-6 border-t md:border-t-0 md:border-l border-white/10 md:pl-8 pt-8 md:pt-0 relative">
-                <RetrievalSection
-                  fileCode={fileCode}
-                  setFileCode={setFileCode}
-                  downloadPassword={downloadPassword}
-                  setDownloadPassword={setDownloadPassword}
-                  isConnected={isConnected}
-                  isBusy={isBusy}
-                  activeOperation={activeOperation}
-                  downloadProgress={downloadProgress}
-                  onDownload={handleDownloadAction}
-                  onPlay={handlePlayAction}
-                  onInspect={() => handleInspect()}
-                  onDelete={handleDeleteAction}
-                />
+              <div className="flex flex-col h-full">
+                  <div className="flex-grow flex flex-col">
+                      <RetrievalSection
+                        fileCode={fileCode}
+                        setFileCode={setFileCode}
+                        downloadPassword={downloadPassword}
+                        setDownloadPassword={setDownloadPassword}
+                        isConnected={isConnected}
+                        isBusy={isBusy}
+                        activeOperation={activeOperation}
+                        downloadProgress={downloadProgress}
+                        onDownload={handleDownloadAction}
+                        onPlay={handlePlayAction}
+                        onInspect={() => handleInspect()}
+                        onDelete={handleDeleteAction}
+                      />
+                  </div>
               </div>
           </div>
-        ) : previewFile && (
-          <FilePreview 
-            onBack={() => setView('default')}
-            fileCode={previewFile.code}
-            fileInfo={previewFile.info}
-            forensicReport={previewFile.report}
-            isBusy={isBusy}
-            onDownload={handleDownloadAction}
-            onDelete={handleDeleteAction}
-            onScrub={handleScrubAction}
-            onPreview={handlePreviewRequest}
-            isSharedLink={isSharedLink}
-          />
         )}
       </div>
     </div>

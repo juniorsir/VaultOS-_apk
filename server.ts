@@ -23,7 +23,19 @@ async function startServer() {
 
   // API routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ 
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  app.get("/health", (req, res) => {
+    res.json({ 
+      status: "ok",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    });
   });
 
   // P2P Room Creation
