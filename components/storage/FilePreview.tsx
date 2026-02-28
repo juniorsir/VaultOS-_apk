@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   XMarkIcon, DownloadIcon, TrashIcon, PlayIcon, PauseIcon,
   ShieldCheckIcon, ShieldExclamationIcon,
   BugIcon, ActivityIcon, TerminalIcon, ChainIcon,
   ImageIcon, VideoIcon, MusicIcon, CodeIcon, DocumentIcon,
   ArrowPathIcon, SpeakerWaveIcon, SpeakerXMarkIcon, ShieldCheckIcon as ShieldIcon,
-  LockIcon, HandshakeIcon, ArrowRightIcon, ArrowsPointingOutIcon
+  LockIcon, HandshakeIcon, ArrowRightIcon, ArrowsPointingOutIcon, QrCodeIcon
 } from '../Icons';
 import Spinner from '../common/Spinner';
 import { FileInfo, ForensicReport } from '../../types';
@@ -34,6 +35,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
@@ -336,9 +338,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                      <TrashIcon className="w-6 h-6 text-rose-500" />
                   </div>
                   <h3 className="text-lg font-bold text-white text-center mb-2">Permanently Delete?</h3>
-                  <p className="text-sm text-slate-400 text-center mb-6 leading-relaxed">
+                  <div className="text-sm text-slate-400 text-center mb-6 leading-relaxed">
                      This action cannot be undone. The file will be wiped from both the database and secure cloud storage immediately.
-                  </p>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                      <button 
                        onClick={() => setShowDeleteConfirm(false)}
@@ -357,6 +359,27 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                      >
                         Confirm Kill
                      </button>
+                  </div>
+               </div>
+            </div>
+        )}
+
+        {/* QR Code Modal Overlay */}
+        {showQRModal && (
+            <div className="absolute inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-6 animate-in fade-in duration-300">
+               <div className="w-full max-w-sm bg-slate-900 border border-white/10 rounded-2xl p-6 shadow-2xl transform scale-100 animate-in zoom-in-95 duration-200 relative flex flex-col items-center">
+                  <button 
+                      onClick={() => setShowQRModal(false)}
+                      className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                  >
+                      <XMarkIcon className="w-5 h-5" />
+                  </button>
+                  <h3 className="text-lg font-bold text-white text-center mb-6">Scan to Download</h3>
+                  <div className="p-4 bg-white rounded-xl mb-6">
+                      <QRCodeSVG value={`${window.location.origin}${window.location.pathname}?v=${fileCode}`} size={200} level="H" fgColor="#0f172a" bgColor="#ffffff" />
+                  </div>
+                  <div className="text-[10px] text-slate-400 text-center font-mono break-all px-4">
+                      {`${window.location.origin}${window.location.pathname}?v=${fileCode}`}
                   </div>
                </div>
             </div>
@@ -491,9 +514,9 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                             {/* AI Detection Overlay (Top Left) */}
                             {forensicReport && (
                                 <div className={`absolute top-0 left-0 p-6 z-20 transition-opacity duration-300 ${!isPlaying ? 'opacity-100' : 'opacity-0 group-hover/video:opacity-100'}`}>
-                                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border shadow-lg ${forensicReport.is_ai ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
+                                    <div className={`flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold border shadow-lg ${forensicReport.is_ai ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
                                         {forensicReport.is_ai ? <ShieldExclamationIcon className="w-4 h-4" /> : <ShieldIcon className="w-4 h-4" />}
-                                        <span>{forensicReport.is_ai ? 'AI DETECTED' : 'HUMAN VERIFIED'}</span>
+                                        <span className="leading-none mt-0.5">{forensicReport.is_ai ? 'AI DETECTED' : 'HUMAN VERIFIED'}</span>
                                     </div>
                                 </div>
                             )}
@@ -505,11 +528,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                         e.stopPropagation();
                                         handleCopyId();
                                     }}
-                                    className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono text-slate-300 hover:text-white hover:border-violet-500/30 transition-all flex items-center gap-2 shadow-lg"
+                                    className="px-3 h-8 rounded-lg bg-black/60 border border-white/10 text-[10px] font-mono text-slate-300 hover:text-white hover:border-violet-500/30 transition-all flex items-center gap-2 shadow-lg"
                                     aria-label="Copy File ID"
                                 >
-                                    <span className="opacity-50">ID</span>
-                                    <span className="font-bold">{fileCode}</span>
+                                    <span className="opacity-50 leading-none mt-0.5">ID</span>
+                                    <span className="font-bold leading-none mt-0.5">{fileCode}</span>
                                     {idCopied ? (
                                         <ShieldCheckIcon className="w-3 h-3 text-emerald-500" />
                                     ) : (
@@ -841,7 +864,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                         <span className="relative z-10 tracking-wide">Download File</span>
                     </button>
 
-                    <div className="grid grid-cols-2 gap-4 lg:gap-6">
+                    <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-6">
                         <button 
                             onClick={handleCopyLink}
                             className="flex items-center justify-center gap-2 h-12 lg:h-14 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl border border-white/5 hover:border-white/10 transition-all duration-300 text-xs lg:text-sm font-semibold group"
@@ -850,8 +873,15 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                             <span>{shareCopied ? 'Copied' : 'Share Link'}</span>
                         </button>
                         <button 
+                            onClick={() => setShowQRModal(true)}
+                            className="w-12 lg:w-14 h-12 lg:h-14 flex items-center justify-center bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-2xl border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                            aria-label="Show QR Code"
+                        >
+                            <QrCodeIcon className="w-4 h-4 lg:w-5 lg:h-5 group-hover:text-indigo-400 transition-colors" />
+                        </button>
+                        <button 
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="flex items-center justify-center gap-2 h-12 lg:h-14 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-2xl border border-rose-500/20 hover:border-rose-500/30 transition-all duration-300 text-xs lg:text-sm font-semibold group"
+                            className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 h-12 lg:h-14 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 rounded-2xl border border-rose-500/20 hover:border-rose-500/30 transition-all duration-300 text-xs lg:text-sm font-semibold group"
                         >
                             <TrashIcon className="w-4 h-4 lg:w-5 lg:h-5" />
                             <span>Delete File</span>

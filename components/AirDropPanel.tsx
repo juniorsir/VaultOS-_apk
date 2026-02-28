@@ -20,8 +20,23 @@ const AirDropPanel: React.FC = memo(() => {
   const [joinCode, setJoinCode] = useState('');
   const [showScanner, setShowScanner] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [signalStrength, setSignalStrength] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Simulate signal strength when connected
+  useEffect(() => {
+    if (status === 'CONNECTED' || status === 'TRANSFERRING') {
+      setSignalStrength(4); // Start strong
+      const interval = setInterval(() => {
+        // Simulate slight fluctuation between 3 and 4 bars
+        setSignalStrength(3 + Math.round(Math.random() * 0.7)); 
+      }, 3000);
+      return () => clearInterval(interval);
+    } else {
+      setSignalStrength(0);
+    }
+  }, [status]);
 
   // Auto-scroll to bottom of transfer list
   useEffect(() => {
@@ -115,18 +130,43 @@ const AirDropPanel: React.FC = memo(() => {
         {/* Header */}
         <div className="relative z-10 flex items-center justify-between mb-6 border-b border-white/5 pb-6">
             <div className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl border transition-colors duration-500 ${
+                <div className={`p-3 rounded-2xl border transition-all duration-500 relative overflow-hidden ${
                     ['CONNECTED', 'TRANSFERRING'].includes(status) 
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]' 
                     : 'bg-slate-800/50 border-white/10 text-slate-400'
                 }`}>
-                    <WifiIcon className="w-6 h-6" />
+                    <div className={`absolute inset-0 bg-emerald-400/20 blur-xl rounded-full transition-opacity duration-500 ${['CONNECTED', 'TRANSFERRING'].includes(status) ? 'opacity-100 animate-pulse' : 'opacity-0'}`}></div>
+                    <WifiIcon className="w-6 h-6 relative z-10" />
                 </div>
                 <div>
-                    <h2 className="text-xl font-bold text-white tracking-tight">Vault P2P Share</h2>
+                    <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-3">
+                        Vault P2P Share
+                        {/* Signal Strength Indicator */}
+                        {['CONNECTED', 'TRANSFERRING'].includes(status) && (
+                            <div className="flex items-end gap-0.5 h-3 ml-1" title="Signal Strength: Strong">
+                                {[1, 2, 3, 4].map(bar => (
+                                    <div 
+                                        key={bar} 
+                                        className={`w-1 rounded-sm transition-all duration-500 ${
+                                            bar <= signalStrength 
+                                            ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' 
+                                            : 'bg-slate-800/50'
+                                        }`}
+                                        style={{ height: `${bar * 25}%` }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </h2>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${status === 'IDLE' ? 'bg-slate-500' : 'bg-emerald-500 animate-pulse'}`}></span>
-                        <p className="text-xs text-slate-500 font-mono uppercase tracking-wider">
+                        <span className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor] transition-colors duration-300 ${
+                            status === 'IDLE' ? 'bg-slate-500 text-slate-500 shadow-none' : 
+                            status === 'CONNECTED' || status === 'TRANSFERRING' ? 'bg-emerald-500 text-emerald-500 animate-pulse' :
+                            'bg-violet-500 text-violet-500 animate-pulse'
+                        }`}></span>
+                        <p className={`text-xs font-mono uppercase tracking-wider transition-colors duration-300 ${
+                            status === 'CONNECTED' || status === 'TRANSFERRING' ? 'text-emerald-400 font-bold' : 'text-slate-500'
+                        }`}>
                             {status === 'IDLE' && 'Ready to Connect'}
                             {(status === 'CREATING' || status === 'PAIRING') && 'Broadcasting Signal...'}
                             {status === 'CONNECTING' && 'Handshaking...'}

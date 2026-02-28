@@ -32,7 +32,7 @@ interface FileHistoryItem {
 
 interface FileHistoryPanelProps {
   files: FileHistoryItem[];
-  onClose: () => void;
+  onClose?: () => void;
   onSelect: (code: string) => void;
   onDelete: (code: string) => void;
   isLoading?: boolean;
@@ -200,9 +200,9 @@ const FileHistoryPanel: React.FC<FileHistoryPanelProps> = React.memo(({
                                className="group relative p-6 rounded-[32px] bg-white/[0.03] backdrop-blur-md border border-white/10 hover:border-violet-500/30 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col justify-between overflow-hidden"
                              >
                                 {/* Hover Glow Effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 via-transparent to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
                                 
-                                <div>
+                                <div className="relative z-10">
                                     <div className="flex items-start gap-5 mb-6">
                                        {/* File Icon */}
                                        <div className={`flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${
@@ -244,7 +244,7 @@ const FileHistoryPanel: React.FC<FileHistoryPanelProps> = React.memo(({
                                     )}
                                 </div>
                                 
-                                <div className="flex flex-col gap-6">
+                                <div className="flex flex-col gap-6 relative z-10">
                                     <div className="text-[10px] text-slate-600 font-black tracking-[0.1em] flex items-center gap-2 uppercase">
                                        <Clock className="w-3 h-3 text-slate-700" />
                                        <span>{file.date.toLocaleDateString()}</span>
