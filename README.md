@@ -18,3 +18,4 @@ View your app in AI Studio: https://ai.studio/apps/63606150-25d3-4037-bab3-fb2e2
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+# VaultOS-_apk
