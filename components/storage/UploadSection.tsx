@@ -1,9 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   UploadIcon, XMarkIcon, LockIcon, ShieldCheckIcon,
   ImageIcon, VideoIcon, MusicIcon, CodeIcon, DocumentIcon,
-  ClockIcon, ChevronDownIcon
+  ClockIcon, ChevronDownIcon, QrCodeIcon
 } from '../Icons';
 import ModernSpinner from '../common/ModernSpinner';
 import { registerBackgroundTask, notifyTaskCompletion } from '../../utils/backgroundTasks';
@@ -82,6 +83,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   const [uploadProgress, setUploadProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadedCode, setUploadedCode] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
   
   // Use a ref to track drag depth to prevent flickering when dragging over children
   const dragCounter = useRef(0);
@@ -192,6 +195,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
             });
             
             if (code) {
+                setUploadedCode(code);
                 setProcessingStage('complete');
                 notifyTaskCompletion('Upload Complete', {
                   body: `File ${fileToUpload.name} has been securely uploaded.`,
@@ -216,9 +220,46 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   const FileTypeIcon = selectedFile ? getFileIcon(selectedFile) : UploadIcon;
 
   return (
-    <div className="flex flex-col h-full gap-5">
+    <div className="flex flex-col h-full gap-5 relative">
       
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+      {/* QR Code Modal */}
+      {showQr && uploadedCode && (
+        <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center animate-in fade-in duration-300 px-8 rounded-[30px]">
+           <button 
+             onClick={() => setShowQr(false)}
+             className="absolute top-4 right-4 p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+           >
+             <XMarkIcon className="w-5 h-5" />
+           </button>
+           
+           <div className="bg-white p-4 rounded-2xl shadow-2xl shadow-violet-500/20 mb-4">
+             <QRCodeSVG 
+               value={`${window.location.origin}${window.location.pathname}?v=${uploadedCode}`}
+               size={180}
+               level="H"
+               includeMargin={false}
+             />
+           </div>
+           
+           <h3 className="text-white font-bold text-lg mb-1">Scan to Access</h3>
+           <p className="text-slate-400 text-xs text-center max-w-[200px]">
+             Use a secure scanner to retrieve this file on another device.
+           </p>
+        </div>
+      )}
+
+      <div className="flex gap-2 items-center">
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+        {uploadedCode && (
+          <button
+            onClick={() => setShowQr(true)}
+            className="w-12 h-12 flex items-center justify-center bg-violet-500/20 text-violet-300 rounded-xl border border-violet-500/30 hover:bg-violet-500/30 transition-all shadow-lg flex-shrink-0"
+            aria-label="Show QR Code"
+          >
+            <QrCodeIcon className="w-5 h-5" />
+          </button>
+        )}
+      </div>
       
       <div 
         onClick={!isConnected || isProcessing ? undefined : () => fileInputRef.current?.click()}
