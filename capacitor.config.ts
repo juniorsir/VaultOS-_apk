@@ -4,12 +4,12 @@ const config = {
   webDir: 'dist',
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2500,
+      launchShowDuration: 2000,
       launchAutoHide: true,
       backgroundColor: "#000000",
       showSpinner: false
     }
-  }
+  } 
 }
 
 export default config
