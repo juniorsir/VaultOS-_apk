@@ -122,8 +122,11 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
     }
   }, [isProcessing, localIsProcessing]);
 
-  const handleUploadComplete = (code: string, file: File) => {
+  const handleUploadComplete = (code: string, file: File, password?: string) => {
       setFileCode(code);
+      if (password) {
+          setDownloadPassword(password);
+      }
       
       onAddToHistory({
         code,
@@ -271,6 +274,22 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
       return await onPlay(fileCode, password || downloadPassword);
   };
 
+  const handleExportConfig = () => {
+      const config = {
+          fileCode,
+          downloadPassword
+      };
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vault-config-${fileCode}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="relative transition-all duration-500">
       
@@ -314,6 +333,7 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
                     onScrub={handleScrubAction}
                     onPreview={handlePreviewRequest}
                     isSharedLink={isSharedLink}
+                    onExportConfig={handleExportConfig}
                   />
               </div>
            </div>

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   VaultIcon, 
   ShieldCheckIcon, 
@@ -13,7 +14,8 @@ import {
   GlobeIcon,
   CpuIcon,
   ServerIcon,
-  TerminalIcon
+  TerminalIcon,
+  XMarkIcon
 } from './Icons';
 import TextScramble from './common/TextScramble';
 import ParticleBackground from './common/ParticleBackground';
@@ -55,6 +57,7 @@ const USE_CASES = [
 const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [activeModal, setActiveModal] = useState<'privacy' | 'terms' | 'status' | null>(null);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -127,16 +130,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       {/* Header */}
       <header className="relative z-50 w-full p-4 md:p-6 lg:p-8 flex justify-between items-center animate-in fade-in slide-in-from-top-4 duration-700">
         <div className="flex items-center gap-3 lg:gap-4 group cursor-pointer" onClick={onEnter}>
-          <div className="w-8 h-8 lg:w-12 lg:h-12 bg-white/5 border border-white/10 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform duration-300">
+          <div className="w-8 h-8 lg:w-12 lg:h-12 bg-white/5 border border-white/10 rounded-lg lg:rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/10 group-hover:scale-110 transition-transform duration-300 shrink-0">
             <VaultIcon className="w-4 h-4 lg:w-6 lg:h-6 text-violet-400 group-hover:text-violet-300 transition-colors" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="font-bold text-base lg:text-xl tracking-wider text-white flex items-center gap-2">
+          <div className="flex flex-col min-w-0">
+            <h1 className="font-bold text-base lg:text-xl tracking-wider text-white flex items-center gap-2 truncate">
               VAULT<span className="text-violet-500">OS</span>
             </h1>
             <div className="flex items-center gap-1.5">
-              <span className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
-              <span className="text-[9px] lg:text-[11px] font-mono text-slate-500 uppercase tracking-widest group-hover:text-emerald-400 transition-colors">System Secure</span>
+              <span className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)] shrink-0"></span>
+              <span className="text-[9px] lg:text-[11px] font-mono text-slate-500 uppercase tracking-widest group-hover:text-emerald-400 transition-colors truncate">System Secure</span>
             </div>
           </div>
         </div>
@@ -157,31 +160,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
 
       {/* Hero Section */}
       <section className="relative z-10 flex flex-col items-center justify-center pt-16 pb-24 lg:pt-32 lg:pb-40 px-4 text-center min-h-[75vh] lg:min-h-[85vh]">
-        <div className="max-w-4xl lg:max-w-7xl w-full space-y-10 lg:space-y-14">
+        <div className="max-w-4xl lg:max-w-7xl w-full space-y-8 lg:space-y-14">
           
           {/* Badge */}
-          <div className="flex justify-center scroll-reveal opacity-0 translate-y-4 transition-all duration-700">
-             <div className="px-3 py-1 lg:px-5 lg:py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:bg-white/10 transition-colors cursor-default group">
-               <span className="flex h-1.5 w-1.5 lg:h-2 lg:w-2 relative">
+          <div className="flex justify-center scroll-reveal opacity-0 translate-y-4 transition-all duration-700 px-4">
+             <div className="px-3 py-1 lg:px-5 lg:py-2 bg-white/5 border border-white/10 rounded-full flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.1)] hover:bg-white/10 transition-colors cursor-default group max-w-full overflow-hidden">
+               <span className="flex h-1.5 w-1.5 lg:h-2 lg:w-2 relative shrink-0">
                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 lg:h-2 lg:w-2 bg-violet-500"></span>
                </span>
-               <span className="text-[9px] lg:text-xs font-mono font-bold text-violet-300 tracking-widest uppercase group-hover:text-violet-200 transition-colors">
+               <span className="text-[9px] lg:text-xs font-mono font-bold text-violet-300 tracking-widest uppercase group-hover:text-violet-200 transition-colors truncate">
                  <TextScramble text="V2.0_STABLE_RELEASE" delay={500} />
                </span>
              </div>
           </div>
 
           {/* Main Title */}
-          <div className="space-y-5 lg:space-y-8 scroll-reveal opacity-0 translate-y-8 transition-all duration-700 delay-100">
-             <h2 className="text-5xl md:text-7xl lg:text-9xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500 drop-shadow-2xl relative">
+          <div className="space-y-4 lg:space-y-8 scroll-reveal opacity-0 translate-y-8 transition-all duration-700 delay-100 px-2 sm:px-0">
+             <h2 className="text-[11vw] leading-[1.1] sm:text-5xl md:text-7xl lg:text-9xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-slate-500 drop-shadow-2xl relative">
                <span className="block animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">SECURE</span>
-               <span className="text-stroke-thin text-white/10 relative inline-block">
+               <span className="text-stroke-thin text-white/10 relative inline-block max-w-full">
                   <span className="absolute inset-0 text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 animate-gradient-x opacity-30 blur-sm">INFRASTRUCTURE</span>
                   <Typewriter text="INFRASTRUCTURE" delay={1000} speed={100} cursor={false} />
                </span>
              </h2>
-             <p className="text-slate-400 text-base md:text-lg lg:text-2xl font-light tracking-wide max-w-xl lg:max-w-3xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+             <p className="text-slate-400 text-sm sm:text-base md:text-lg lg:text-2xl font-light tracking-wide max-w-[90%] sm:max-w-xl lg:max-w-3xl mx-auto leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
                The definitive sovereign interface for <span className="text-white font-medium relative inline-block">
                  high-assurance
                  <span className="absolute bottom-0 left-0 w-full h-px bg-violet-500/50"></span>
@@ -194,7 +197,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
           <div className="flex flex-col items-center gap-6 lg:gap-10 scroll-reveal opacity-0 scale-95 transition-all duration-700 delay-200">
             <MagneticButton 
               onClick={onEnter}
-              className="group relative h-12 px-10 lg:h-16 lg:px-14 bg-white text-slate-950 rounded-full font-bold text-xs lg:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] overflow-hidden"
+              className="group relative h-12 px-8 sm:px-10 lg:h-16 lg:px-14 bg-white text-slate-950 rounded-full font-bold text-xs lg:text-sm tracking-widest uppercase transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-violet-400 to-fuchsia-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%] animate-shimmer opacity-0 group-hover:opacity-100"></div>
@@ -204,7 +207,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
               </span>
             </MagneticButton>
             
-            <div className="flex items-center gap-6 lg:gap-10 text-[9px] lg:text-xs font-mono text-slate-500 uppercase tracking-widest animate-in fade-in duration-1000 delay-700">
+            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 lg:gap-10 text-[9px] lg:text-xs font-mono text-slate-500 uppercase tracking-widest animate-in fade-in duration-1000 delay-700">
               <div className="flex items-center gap-1.5 lg:gap-2.5 group cursor-help">
                 <ShieldCheckIcon className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-emerald-500 group-hover:animate-bounce" />
                 <span className="group-hover:text-emerald-400 transition-colors">Audited</span>
@@ -225,6 +228,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
       {/* Features Grid */}
       <section className="relative z-10 py-16 lg:py-32 px-4 md:px-6 lg:px-12 border-t border-white/5 bg-black/20">
         <div className="max-w-6xl lg:max-w-[90rem] mx-auto">
+          <div className="text-center mb-16 lg:mb-24 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">Core Capabilities</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm lg:text-base">Engineered for absolute privacy. Our cryptographic primitives ensure your data remains sovereign and inaccessible to unauthorized entities.</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8">
             {USE_CASES.map((useCase, i) => (
               <div 
@@ -252,11 +259,44 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative z-10 py-14 px-6 border-t border-white/5 bg-[#020617]">
+      {/* How It Works Section */}
+      <section className="relative z-10 py-20 lg:py-32 px-4 md:px-6 lg:px-12 border-t border-white/5 bg-[#030712]">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-10">
-            <div className="space-y-3">
+          <div className="text-center mb-16 lg:mb-24 scroll-reveal opacity-0 translate-y-8 transition-all duration-700">
+            <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6">Protocol Execution</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm lg:text-base">A transparent look into the VaultOS zero-knowledge handshake and payload delivery system.</p>
+          </div>
+          
+          <div className="relative">
+            {/* Connecting Line */}
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent -translate-y-1/2"></div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-16">
+              {[
+                { step: "01", title: "Client-Side Encryption", desc: "Payloads are encrypted locally using AES-256-GCM before ever leaving your device. Keys are never transmitted." },
+                { step: "02", title: "Secure Handshake", desc: "A cryptographic tunnel is established via WebRTC or secure relays, verifying node identity without exposing metadata." },
+                { step: "03", title: "Ephemeral Delivery", desc: "Data is transmitted and immediately purged from relay nodes. Only the intended recipient can decrypt the payload." }
+              ].map((item, i) => (
+                <div key={i} className="relative flex flex-col items-center text-center scroll-reveal opacity-0 translate-y-8 transition-all duration-700" style={{ transitionDelay: `${i * 200}ms` }}>
+                  <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-[#030712] border-2 border-violet-500/30 flex items-center justify-center mb-6 relative z-10 shadow-[0_0_30px_rgba(139,92,246,0.1)]">
+                    <span className="text-xl lg:text-2xl font-mono font-bold text-violet-400">{item.step}</span>
+                  </div>
+                  <h3 className="text-lg lg:text-xl font-bold text-white mb-3">{item.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* Footer */}
+      <footer className="relative z-10 py-10 lg:py-14 px-4 sm:px-6 border-t border-white/5 bg-[#020617]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10 text-center md:text-left">
+            <div className="space-y-3 flex flex-col items-center md:items-start">
               <div className="flex items-center gap-2 group cursor-pointer" onClick={onEnter}>
                  <VaultIcon className="w-5 h-5 text-violet-500 group-hover:rotate-12 transition-transform duration-300" />
                  <span className="text-lg font-bold text-white tracking-widest group-hover:text-violet-200 transition-colors">VAULT<span className="text-violet-500">OS</span></span>
@@ -267,7 +307,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
               </p>
             </div>
             
-            <div className="flex gap-6">
+            <div className="flex gap-4 sm:gap-6">
               <a href="#" className="p-2.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-all hover:scale-110 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]" aria-label="Visit our GitHub">
                 <GitHubIcon className="w-4 h-4" />
               </a>
@@ -280,16 +320,139 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnter }) => {
             </div>
           </div>
           
-          <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-5 text-[9px] font-mono text-slate-600 uppercase tracking-widest">
+          <div className="mt-10 pt-6 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-5 text-[9px] font-mono text-slate-600 uppercase tracking-widest">
             <p>&copy; 2025 VAULT SYSTEMS INC.</p>
-            <div className="flex gap-5">
-              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Privacy</a>
-              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Terms</a>
-              <a href="#" className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4">Status</a>
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
+              <button onClick={() => setActiveModal('privacy')} className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4 uppercase">Privacy</button>
+              <button onClick={() => setActiveModal('terms')} className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4 uppercase">Terms</button>
+              <button onClick={() => setActiveModal('status')} className="hover:text-slate-400 transition-colors hover:underline decoration-violet-500 underline-offset-4 uppercase">Status</button>
             </div>
           </div>
         </div>
       </footer>
+      
+      {/* Modals */}
+      <AnimatePresence>
+        {activeModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setActiveModal(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-2xl max-h-[80vh] bg-slate-900 border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/5">
+                <h3 className="text-xl font-bold text-white tracking-wider uppercase flex items-center gap-3">
+                  {activeModal === 'privacy' && <><ShieldCheckIcon className="w-6 h-6 text-violet-500" /> Privacy Policy</>}
+                  {activeModal === 'terms' && <><TerminalIcon className="w-6 h-6 text-violet-500" /> Terms of Service</>}
+                  {activeModal === 'status' && <><ActivityIcon className="w-6 h-6 text-violet-500" /> System Status</>}
+                </h3>
+                <button 
+                  onClick={() => setActiveModal(null)}
+                  className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar text-slate-300 text-sm leading-relaxed space-y-6">
+                {activeModal === 'privacy' && (
+                  <>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">1. Zero-Knowledge Architecture</h4>
+                      <p className="text-slate-400">VaultOS is designed with a zero-knowledge architecture. We do not collect, store, or process any personally identifiable information (PII) or unencrypted payload data. Your keys never leave your device.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">2. End-to-End Encryption</h4>
+                      <p className="text-slate-400">All files and communications are encrypted client-side before transmission using AES-256-GCM. The decryption keys are generated locally and never transmitted to our servers unless explicitly shared via secure P2P channels.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">3. Ephemeral Storage</h4>
+                      <p className="text-slate-400">Data stored on our network is ephemeral and automatically purged upon expiration or manual deletion. No backups of unencrypted data are maintained. Once deleted, data is cryptographically shredded.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">4. Telemetry & Analytics</h4>
+                      <p className="text-slate-400">We collect minimal, anonymized telemetry data strictly for network performance monitoring and abuse prevention. This data cannot be linked to individual users, IP addresses, or payloads.</p>
+                    </div>
+                  </>
+                )}
+                {activeModal === 'terms' && (
+                  <>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">1. Acceptance of Terms</h4>
+                      <p className="text-slate-400">By accessing or using VaultOS, you agree to be bound by these Terms of Service. If you do not agree, do not use the service. We reserve the right to modify these terms at any time.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">2. Acceptable Use</h4>
+                      <p className="text-slate-400">You agree not to use VaultOS for any unlawful purposes, including but not limited to the distribution of malware, illegal content, or intellectual property infringement. We reserve the right to terminate access for abuse.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">3. Disclaimer of Warranties</h4>
+                      <p className="text-slate-400">VaultOS is provided "as is" without warranties of any kind. We do not guarantee uninterrupted service or absolute data security, although we employ state-of-the-art cryptographic measures.</p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-white font-bold text-base">4. Limitation of Liability</h4>
+                      <p className="text-slate-400">In no event shall VaultOS or its operators be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the service or data loss.</p>
+                    </div>
+                  </>
+                )}
+                {activeModal === 'status' && (
+                  <div className="space-y-8">
+                    <div className="flex items-center justify-between p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                      <div className="flex items-center gap-4">
+                        <div className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </div>
+                        <span className="font-bold text-emerald-400 text-lg">All Systems Operational</span>
+                      </div>
+                      <span className="text-xs font-mono text-emerald-500/70 uppercase tracking-widest">Updated Live</span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Network Nodes</h4>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                        <span className="text-slate-300 font-medium">Core API Gateway</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-emerald-400 text-xs font-mono">99.99%</span>
+                          <span className="text-emerald-500 text-xs">Operational</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                        <span className="text-slate-300 font-medium">Encrypted Storage Nodes</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-emerald-400 text-xs font-mono">99.98%</span>
+                          <span className="text-emerald-500 text-xs">Operational</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                        <span className="text-slate-300 font-medium">P2P Relay Network (WebRTC)</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-emerald-400 text-xs font-mono">100.0%</span>
+                          <span className="text-emerald-500 text-xs">Operational</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                        <span className="text-slate-300 font-medium">Secure Mail Service</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-emerald-400 text-xs font-mono">99.95%</span>
+                          <span className="text-emerald-500 text-xs">Operational</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <style>{`
         .text-stroke-thin {

@@ -6,12 +6,13 @@ import {
   ClockIcon, ChevronDownIcon
 } from '../Icons';
 import ModernSpinner from '../common/ModernSpinner';
+import { registerBackgroundTask, notifyTaskCompletion } from '../../utils/backgroundTasks';
 
 interface UploadSectionProps {
   isConnected: boolean;
   isProcessing: boolean;
   onUpload: (file: File, password: string, expiry: string, onProgress: (progress: number) => void) => Promise<string | null>;
-  onUploadComplete: (code: string, file: File) => void;
+  onUploadComplete: (code: string, file: File, password?: string) => void;
   preserveSession?: boolean;
 }
 
@@ -179,6 +180,9 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         setProcessingStage('uploading');
         const fileToUpload = selectedFile;
         
+        // Register background task for upload
+        registerBackgroundTask('sync-uploads');
+        
         try {
             const code = await onUpload(fileToUpload, uploadPassword, uploadExpiry, (p) => {
                 setUploadProgress(p);
@@ -189,11 +193,17 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
             
             if (code) {
                 setProcessingStage('complete');
+                notifyTaskCompletion('Upload Complete', {
+                  body: `File ${fileToUpload.name} has been securely uploaded.`,
+                });
                 await delay(1500);
-                onUploadComplete(code, fileToUpload);
+                onUploadComplete(code, fileToUpload, uploadPassword);
             }
         } catch (error) {
             console.error("Upload failed", error);
+            notifyTaskCompletion('Upload Failed', {
+              body: `Failed to upload ${fileToUpload.name}.`,
+            });
         } finally {
             setSelectedFile(null);
             setUploadPassword('');

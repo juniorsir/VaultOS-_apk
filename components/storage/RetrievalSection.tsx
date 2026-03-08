@@ -1,13 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   ChainIcon, CodeIcon, LockIcon, 
   DownloadIcon, PlayIcon, EyeIcon, TrashIcon,
-  QrCodeIcon, XMarkIcon
+  QrCodeIcon, XMarkIcon, UploadIcon
 } from '../Icons';
 import ModernSpinner from '../common/ModernSpinner';
 import SineWaveProgress from '../common/SineWaveProgress';
+import { registerBackgroundTask, notifyTaskCompletion } from '../../utils/backgroundTasks';
 
 interface RetrievalSectionProps {
   fileCode: string;
@@ -33,6 +34,41 @@ export function RetrievalSection({
 }: RetrievalSectionProps) {
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportConfig = () => {
+    if (!fileCode) return;
+    const config = {
+      fileCode,
+      downloadPassword
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vault-config-${fileCode.substring(0, 6)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const config = JSON.parse(event.target?.result as string);
+        if (config.fileCode) setFileCode(config.fileCode);
+        if (config.downloadPassword) setDownloadPassword(config.downloadPassword);
+      } catch (err) {
+        console.error('Failed to parse config file', err);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
+  };
 
   const copyShareLink = async () => {
     if (!fileCode) return;
@@ -60,6 +96,21 @@ export function RetrievalSection({
       setTimeout(() => setShareLinkCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy', err);
+    }
+  };
+
+  const handleDownloadClick = async () => {
+    if (!fileCode) return;
+    registerBackgroundTask('sync-downloads');
+    try {
+      await onDownload();
+      notifyTaskCompletion('Download Complete', {
+        body: `File ${fileCode} has been securely downloaded.`,
+      });
+    } catch (error) {
+      notifyTaskCompletion('Download Failed', {
+        body: `Failed to download file ${fileCode}.`,
+      });
     }
   };
 
@@ -143,6 +194,33 @@ export function RetrievalSection({
           </div>
 
           <div className="flex-grow flex flex-col justify-center space-y-6">
+               <div className="flex justify-between items-end mb-2">
+                 <div className="flex gap-2">
+                   <button
+                     onClick={() => fileInputRef.current?.click()}
+                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/10 transition-colors"
+                   >
+                     <UploadIcon className="w-3.5 h-3.5" />
+                     Import Config
+                   </button>
+                   <input 
+                     type="file" 
+                     accept=".json" 
+                     className="hidden" 
+                     ref={fileInputRef} 
+                     onChange={handleImportConfig} 
+                   />
+                   {fileCode && (
+                     <button
+                       onClick={handleExportConfig}
+                       className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-white/10 transition-colors"
+                     >
+                       <DownloadIcon className="w-3.5 h-3.5" />
+                       Export Config
+                     </button>
+                   )}
+                 </div>
+               </div>
                <div className="space-y-1.5">
                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider ml-1">File Code</label>
                    <div className="relative group/input">
@@ -182,7 +260,7 @@ export function RetrievalSection({
           
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 mt-auto">
               <button
-                onClick={onDownload}
+                onClick={handleDownloadClick}
                 disabled={!isConnected || !fileCode || isBusy}
                 className="group relative h-24 md:h-32 lg:h-40 flex flex-col items-center justify-center gap-3 rounded-2xl bg-slate-900/40 border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_-6px_rgba(139,92,246,0.3)] hover:border-violet-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
                 aria-label="Download File"

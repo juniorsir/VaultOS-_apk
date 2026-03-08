@@ -10,6 +10,7 @@ import {
 } from '../Icons';
 import Spinner from '../common/Spinner';
 import { FileInfo, ForensicReport } from '../../types';
+import { registerBackgroundTask, notifyTaskCompletion } from '../../utils/backgroundTasks';
 
 interface FilePreviewProps {
   onBack: () => void;
@@ -22,11 +23,12 @@ interface FilePreviewProps {
   onScrub: () => void;
   onPreview: (password?: string) => Promise<{ url: string, type: string } | { error: string } | null>;
   isSharedLink?: boolean;
+  onExportConfig?: () => void;
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({
   onBack, fileCode, fileInfo, forensicReport,
-  isBusy, onDownload, onDelete, onScrub, onPreview, isSharedLink
+  isBusy, onDownload, onDelete, onScrub, onPreview, isSharedLink, onExportConfig
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewType, setPreviewType] = useState<string | null>(null);
@@ -40,6 +42,20 @@ const FilePreview: React.FC<FilePreviewProps> = ({
   const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   
+  const handleDownloadClick = async () => {
+    registerBackgroundTask('sync-downloads');
+    try {
+      await onDownload();
+      notifyTaskCompletion('Download Complete', {
+        body: `File ${fileInfo?.filename || fileCode} has been securely downloaded.`,
+      });
+    } catch (error) {
+      notifyTaskCompletion('Download Failed', {
+        body: `Failed to download file ${fileInfo?.filename || fileCode}.`,
+      });
+    }
+  };
+
   // Latency Simulation
   const [latency, setLatency] = useState(24);
 
@@ -855,14 +871,27 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
                 {/* Actions Bar - Modernized */}
                 <div className="p-5 lg:p-6 bg-white/[0.02] backdrop-blur-md rounded-[24px] border border-white/10 space-y-4 lg:space-y-6 shadow-xl">
-                    <button 
-                        onClick={onDownload}
-                        className="w-full group relative flex items-center justify-center gap-3 h-14 lg:h-16 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white rounded-2xl font-semibold text-sm lg:text-base transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] border-t border-white/10 hover:border-white/20 active:scale-[0.98]"
-                    >
-                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
-                        <DownloadIcon className="w-5 h-5 lg:w-6 lg:h-6 text-slate-300 group-hover:text-white transition-colors relative z-10" /> 
-                        <span className="relative z-10 tracking-wide">Download File</span>
-                    </button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button 
+                            onClick={handleDownloadClick}
+                            className="w-full group relative flex items-center justify-center gap-3 h-14 lg:h-16 bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white rounded-2xl font-semibold text-sm lg:text-base transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.3)] border-t border-white/10 hover:border-white/20 active:scale-[0.98]"
+                        >
+                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                            <DownloadIcon className="w-5 h-5 lg:w-6 lg:h-6 text-slate-300 group-hover:text-white transition-colors relative z-10" /> 
+                            <span className="relative z-10 tracking-wide">Download File</span>
+                        </button>
+                        
+                        {onExportConfig && (
+                            <button 
+                                onClick={onExportConfig}
+                                className="w-full group relative flex items-center justify-center gap-3 h-14 lg:h-16 bg-gradient-to-b from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white rounded-2xl font-semibold text-sm lg:text-base transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(139,92,246,0.3)] border-t border-white/10 hover:border-white/20 active:scale-[0.98]"
+                            >
+                                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                                <DocumentIcon className="w-5 h-5 lg:w-6 lg:h-6 text-violet-200 group-hover:text-white transition-colors relative z-10" /> 
+                                <span className="relative z-10 tracking-wide">Export Config</span>
+                            </button>
+                        )}
+                    </div>
 
                     <div className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_auto_1fr] gap-4 lg:gap-6">
                         <button 

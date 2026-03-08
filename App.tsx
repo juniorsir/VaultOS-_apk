@@ -79,6 +79,12 @@ const App: React.FC = () => {
     localStorage.setItem('vault_preserve_session', String(preserveSession));
   }, [preserveSession]);
 
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   const [showLanding, setShowLanding] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     // Skip landing page if deep linking to mail or file
