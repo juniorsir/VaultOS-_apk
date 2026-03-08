@@ -24,3 +24,21 @@ export const notifyTaskCompletion = (title: string, options?: NotificationOption
     });
   }
 };
+
+export const updateProgressNotification = (id: string, title: string, progress: number, body?: string) => {
+  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+    navigator.serviceWorker.controller?.postMessage({
+      type: 'UPDATE_PROGRESS',
+      payload: { id, title, progress, body }
+    });
+  }
+};
+
+export const clearProgressNotification = (id: string) => {
+  if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+    navigator.serviceWorker.controller?.postMessage({
+      type: 'CLEAR_PROGRESS',
+      payload: { id }
+    });
+  }
+};

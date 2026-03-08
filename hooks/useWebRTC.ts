@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
+import { updateProgressNotification, clearProgressNotification, notifyTaskCompletion } from '../utils/backgroundTasks';
 
 const REST_URL = '';
 const SIGNALING_URL = '';
@@ -350,6 +351,13 @@ export const useWebRTC = () => {
                 : t
             )
         }));
+        
+        const transfer = stateRef.current.transfers.find(t => t.id === id);
+        if (transfer) {
+            const action = transfer.type === 'sending' ? 'Sending' : 'Receiving';
+            updateProgressNotification(id, `${action} ${transfer.fileName}`, Math.round(percent), `${action}: ${Math.round(percent)}%`);
+        }
+        
         lastProgressUpdate.current = now;
     }
   };
@@ -379,6 +387,11 @@ export const useWebRTC = () => {
         )
     }));
     currentReceivingIdRef.current = null;
+    
+    clearProgressNotification(transferId);
+    notifyTaskCompletion('Transfer Complete', {
+        body: `Successfully received ${filename}.`
+    });
   };
 
   // --- Exposed Actions ---
@@ -472,6 +485,12 @@ export const useWebRTC = () => {
                     )
                 }));
                 isSendingRef.current = false;
+                
+                clearProgressNotification(newTransferId);
+                notifyTaskCompletion('Transfer Complete', {
+                    body: `Successfully sent ${file.name}.`
+                });
+                
                 processSendQueue(); // Process next file
             }
         } catch (err) {

@@ -62,3 +62,34 @@ self.addEventListener('push', (event) => {
     })
   );
 });
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'UPDATE_PROGRESS') {
+    const { id, title, progress, body } = event.data.payload;
+    
+    // Create a text-based progress bar
+    const totalBars = 20;
+    const filledBars = Math.round((progress / 100) * totalBars);
+    const emptyBars = totalBars - filledBars;
+    const progressBar = '█'.repeat(filledBars) + '░'.repeat(emptyBars);
+    
+    const notificationBody = body ? `${body}\n${progressBar}` : `${progressBar} ${progress}%`;
+
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body: notificationBody,
+        icon: '/icon-192.png',
+        tag: id,
+        renotify: false,
+        silent: true,
+      })
+    );
+  } else if (event.data && event.data.type === 'CLEAR_PROGRESS') {
+    const { id } = event.data.payload;
+    event.waitUntil(
+      self.registration.getNotifications({ tag: id }).then((notifications) => {
+        notifications.forEach((notification) => notification.close());
+      })
+    );
+  }
+});

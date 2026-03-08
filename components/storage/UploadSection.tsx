@@ -7,7 +7,7 @@ import {
   ClockIcon, ChevronDownIcon, QrCodeIcon
 } from '../Icons';
 import ModernSpinner from '../common/ModernSpinner';
-import { registerBackgroundTask, notifyTaskCompletion } from '../../utils/backgroundTasks';
+import { registerBackgroundTask, notifyTaskCompletion, updateProgressNotification, clearProgressNotification } from '../../utils/backgroundTasks';
 
 interface UploadSectionProps {
   isConnected: boolean;
@@ -189,14 +189,17 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         try {
             const code = await onUpload(fileToUpload, uploadPassword, uploadExpiry, (p) => {
                 setUploadProgress(p);
+                updateProgressNotification('upload', 'Uploading File', p, `Uploading ${fileToUpload.name}: ${p}%`);
                 if (p >= 100) {
                     setProcessingStage('encrypting');
+                    updateProgressNotification('upload', 'Encrypting File', 100, `Securing ${fileToUpload.name}...`);
                 }
             });
             
             if (code) {
                 setUploadedCode(code);
                 setProcessingStage('complete');
+                clearProgressNotification('upload');
                 notifyTaskCompletion('Upload Complete', {
                   body: `File ${fileToUpload.name} has been securely uploaded.`,
                 });
@@ -205,6 +208,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
             }
         } catch (error) {
             console.error("Upload failed", error);
+            clearProgressNotification('upload');
             notifyTaskCompletion('Upload Failed', {
               body: `Failed to upload ${fileToUpload.name}.`,
             });
