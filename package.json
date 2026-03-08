@@ -25,6 +25,7 @@
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/network": "^8.0.1",
     "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
     "@tailwindcss/vite": "^4.2.0",
     "axios": "^1.13.2",
     "cors": "^2.8.6",

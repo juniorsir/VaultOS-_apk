@@ -1,9 +1,15 @@
-import type { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
+const config = {
   appId: 'com.vaultos.app',
   appName: 'VaultOS',
-  webDir: 'dist'
-};
+  webDir: 'dist',
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2500,
+      launchAutoHide: true,
+      backgroundColor: "#000000",
+      showSpinner: false
+    }
+  }
+}
 
-export default config;
+export default config
