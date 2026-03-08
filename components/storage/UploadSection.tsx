@@ -36,6 +36,9 @@ const EXPIRY_OPTIONS = [
     { value: 'custom', label: 'Custom Duration...' },
 ];
 
+import { useFilePicker } from '../../hooks/useFilePicker';
+import { Capacitor } from '@capacitor/core';
+
 export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isProcessing, onUpload, onUploadComplete, preserveSession = false }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadPassword, setUploadPassword] = useState('');
@@ -81,6 +84,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   }, [uploadExpiry, preserveSession]);
 
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
+  const uploadStartTimeRef = useRef<number>(0);
   const [processingStage, setProcessingStage] = useState<ProcessingStage>('idle');
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedCode, setUploadedCode] = useState<string | null>(null);
@@ -89,7 +94,11 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   // Use a ref to track drag depth to prevent flickering when dragging over children
   const dragCounter = useRef(0);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { inputRef, openFilePicker, handleFileChange } = useFilePicker((file) => {
+    setSelectedFile(file);
+    setUploadProgress(0);
+    setProcessingStage('idle');
+  });
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -108,15 +117,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
     return DocumentIcon;
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      setSelectedFile(event.target.files[0]);
-      setUploadProgress(0);
-      setProcessingStage('idle');
-    }
-  };
-
   const handleDragEnter = (e: React.DragEvent) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     
@@ -130,6 +132,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     
@@ -142,6 +145,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     
@@ -155,6 +159,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   };
 
   const handleDrop = (e: React.DragEvent) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     
@@ -172,8 +177,8 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   const handleRemoveFile = (e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedFile(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    if (inputRef.current) {
+        inputRef.current.value = '';
     }
     setUploadProgress(0);
   };
@@ -181,6 +186,10 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
   const handleUpload = async () => {
     if (selectedFile) {
         setProcessingStage('uploading');
+        setUploadProgress(0);
+        setEstimatedTime(null);
+        uploadStartTimeRef.current = Date.now();
+        
         const fileToUpload = selectedFile;
         
         // Register background task for upload
@@ -189,6 +198,24 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
         try {
             const code = await onUpload(fileToUpload, uploadPassword, uploadExpiry, (p) => {
                 setUploadProgress(p);
+                
+                // Calculate ETA
+                if (p > 0 && p < 100) {
+                    const elapsed = (Date.now() - uploadStartTimeRef.current) / 1000;
+                    if (elapsed > 0.5) { // Wait a bit for stability
+                         const totalTime = (elapsed * 100) / p;
+                         const remaining = Math.max(0, totalTime - elapsed);
+                         
+                         if (remaining < 60) {
+                             setEstimatedTime(`${Math.ceil(remaining)}s remaining`);
+                         } else {
+                             setEstimatedTime(`${Math.ceil(remaining / 60)}m remaining`);
+                         }
+                    }
+                } else if (p >= 100) {
+                    setEstimatedTime(null);
+                }
+
                 updateProgressNotification('upload', 'Uploading File', p, `Uploading ${fileToUpload.name}: ${p}%`);
                 if (p >= 100) {
                     setProcessingStage('encrypting');
@@ -253,7 +280,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
       )}
 
       <div className="flex gap-2 items-center">
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+        <input type="file" ref={inputRef} onChange={handleFileChange} className="hidden" />
         {uploadedCode && (
           <button
             onClick={() => setShowQr(true)}
@@ -266,7 +293,7 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
       </div>
       
       <div 
-        onClick={!isConnected || isProcessing ? undefined : () => fileInputRef.current?.click()}
+        onClick={!isConnected || isProcessing ? undefined : openFilePicker}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -336,17 +363,26 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
                     ></div>
                 </div>
                 <div className="flex flex-col items-center gap-1">
-                  <span className="text-3xl font-bold text-white">{uploadProgress}%</span>
-                  <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
-                    {uploadProgress >= 99 ? (
-                       <>
-                         <ModernSpinner size="sm" color="#8b5cf6" />
-                         <span>Verifying...</span>
-                       </>
-                    ) : (
-                       <span>Uploading...</span>
-                    )}
+                  <span className="text-3xl font-bold text-white">
+                    {uploadProgress}%
                   </span>
+                  <div className="flex flex-col items-center">
+                      <span className="text-xs font-medium text-slate-400 flex items-center gap-2">
+                        {uploadProgress >= 99 ? (
+                           <>
+                             <ModernSpinner size="sm" color="#8b5cf6" />
+                             <span>Verifying...</span>
+                           </>
+                        ) : (
+                           <span>Uploading...</span>
+                        )}
+                      </span>
+                      {estimatedTime && uploadProgress < 100 && (
+                          <span className="text-[10px] text-slate-500 mt-1 font-mono animate-pulse">
+                              {estimatedTime}
+                          </span>
+                      )}
+                  </div>
                 </div>
               </div>
             )}

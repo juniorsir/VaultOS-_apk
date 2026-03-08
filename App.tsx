@@ -9,6 +9,7 @@ import { LayoutIcon, VaultIcon, TerminalIcon, ClockIcon, EnvelopeIcon, WifiIcon 
 import { StoredFile, FileInfo, ForensicReport } from './types';
 import Spinner from './components/common/Spinner';
 import ModernSpinner from './components/common/ModernSpinner';
+import FullScreenLoader from './components/common/FullScreenLoader';
 
 // Lazy load panels for better initial performance
 const AuthPanel = lazy(() => import('./components/AuthPanel'));
@@ -351,6 +352,9 @@ const App: React.FC = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
           <div className="absolute inset-0 backdrop-blur-[1px]"></div>
       </div>
+
+      {/* Full Screen Loader */}
+      <FullScreenLoader isVisible={isProcessing} message="Processing Request..." />
 
       {/* Toast Container */}
       <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[300] flex flex-col gap-3 pointer-events-none items-end">

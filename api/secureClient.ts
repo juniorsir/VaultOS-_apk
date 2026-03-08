@@ -3,7 +3,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { LogType, VaultSession, VaultProtocol } from '../types';
 import { generateSignature, packMetadata } from '../utils/securityUtils';
 
-export const API_BASE_URL = process.env.VITE_API_BASE || 'https://jstore.2bd.net';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE || 'https://jstore.2bd.net';
 
 export class SecureApiClient {
   private session: VaultSession | null = null;
@@ -15,7 +15,7 @@ export class SecureApiClient {
     this.client = axios.create({
       baseURL: API_BASE_URL,
       headers: {
-        'Content-Type': 'application/json',
+        // 'Content-Type': 'application/json', // Let Axios set this automatically based on body
       },
     });
 

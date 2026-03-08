@@ -100,6 +100,29 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     addLog(`Initiating upload: ${file.name} (${expiry})`, 'info');
 
+    // Progress Simulation Logic
+    // We simulate a "cinematic" upload speed (e.g., 2MB/s) to ensure the UI 
+    // always shows activity, while also tracking real network progress.
+    const SIMULATED_SPEED = 2 * 1024 * 1024; // 2MB/s
+    const UPDATE_INTERVAL = 100; // 100ms
+    const totalSize = file.size > 0 ? file.size : 1; // Avoid div by zero
+    
+    let simulatedBytes = 0;
+    let realBytes = 0;
+    
+    const progressInterval = setInterval(() => {
+        // Increment simulated bytes
+        simulatedBytes += (SIMULATED_SPEED * (UPDATE_INTERVAL / 1000));
+        
+        // Use the greater of real vs simulated progress
+        const effectiveBytes = Math.max(realBytes, simulatedBytes);
+        
+        // Calculate percentage, capped at 99% until request completes
+        const percent = Math.min(99, Math.round((effectiveBytes / totalSize) * 100));
+        
+        onProgress(percent);
+    }, UPDATE_INTERVAL);
+
     try {
       // Destination: POST /gateway
       const response = await clientRef.current.client.post('/gateway', formData, {
@@ -108,14 +131,20 @@ export const VaultProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           'Content-Type': 'multipart/form-data'
         },
         onUploadProgress: (p) => {
-          if (p.total) onProgress(Math.round((p.loaded * 100) / p.total));
+          // Just update the real bytes tracker, let the interval handle the UI callback
+          realBytes = p.loaded;
         }
       });
+      
+      // Clear simulation and force 100%
+      clearInterval(progressInterval);
+      onProgress(100);
       
       const fileCode = response.data.file_code;
       addLog(`Upload success. Code: ${fileCode}`, 'success');
       return fileCode;
     } catch (error: any) {
+      clearInterval(progressInterval);
       const msg = error.response?.data?.detail || error.message;
       addLog(`Upload failed: ${msg}`, 'error');
       throw new Error(msg);

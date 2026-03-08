@@ -11,6 +11,9 @@ import ModernSpinner from './common/ModernSpinner';
 import QRScanner from './common/QRScanner';
 import { useWebRTC } from '../context/WebRTCContext';
 
+import { useFilePicker } from '../hooks/useFilePicker';
+import { Capacitor } from '@capacitor/core';
+
 const AirDropPanel: React.FC = memo(() => {
   const { 
     status, roomId, error, isHost, transfers, 
@@ -21,8 +24,11 @@ const AirDropPanel: React.FC = memo(() => {
   const [showScanner, setShowScanner] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [signalStrength, setSignalStrength] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { inputRef, openFilePicker, handleFileChange } = useFilePicker((file) => {
+    sendFile(file);
+  });
 
   // Simulate signal strength when connected
   useEffect(() => {
@@ -58,13 +64,8 @@ const AirDropPanel: React.FC = memo(() => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-        sendFile(e.target.files[0]);
-    }
-  };
-
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    if (Capacitor.isNativePlatform()) return; // Disable drag-drop on native
     e.preventDefault();
     e.stopPropagation();
     if (status === 'CONNECTED' || status === 'TRANSFERRING') {
@@ -73,6 +74,7 @@ const AirDropPanel: React.FC = memo(() => {
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     if (status === 'CONNECTED' || status === 'TRANSFERRING') {
@@ -81,12 +83,14 @@ const AirDropPanel: React.FC = memo(() => {
   };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    if (Capacitor.isNativePlatform()) return;
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
@@ -552,9 +556,14 @@ const AirDropPanel: React.FC = memo(() => {
                                                         </span>
                                                     )}
                                                     {transfer.status === 'error' && (
-                                                        <span className="text-[10px] font-bold text-red-400 flex items-center gap-1">
-                                                            <XMarkIcon className="w-3 h-3" /> Failed
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-bold text-red-400 flex items-center gap-1">
+                                                                <XMarkIcon className="w-3 h-3" /> Interrupted
+                                                            </span>
+                                                            <span className="text-[10px] text-red-400/60 hidden sm:inline">
+                                                                (Connection lost or browser closed)
+                                                            </span>
+                                                        </div>
                                                     )}
                                                 </div>
                                                 <span className="text-[10px] text-slate-600">
@@ -571,9 +580,9 @@ const AirDropPanel: React.FC = memo(() => {
 
                     {/* Input Area */}
                     <div className="mt-auto pt-4 border-t border-white/5">
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                        <input type="file" ref={inputRef} onChange={handleFileChange} className="hidden" />
                         <div 
-                            onClick={() => fileInputRef.current?.click()}
+                            onClick={openFilePicker}
                             onDragEnter={handleDragEnter}
                             onDragOver={handleDragOver}
                             onDragLeave={handleDragLeave}
@@ -581,7 +590,7 @@ const AirDropPanel: React.FC = memo(() => {
                             role="button"
                             aria-label="Select file to upload"
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                            onKeyDown={(e) => e.key === 'Enter' && openFilePicker()}
                             className={`relative w-full h-24 rounded-2xl border-2 border-dashed flex items-center justify-center gap-4 transition-all duration-200 cursor-pointer group overflow-hidden ${
                                 isDragging 
                                 ? 'border-violet-500 bg-violet-500/10' 

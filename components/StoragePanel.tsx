@@ -7,6 +7,7 @@ import UploadSection from './storage/UploadSection';
 import { RetrievalSection } from './storage/RetrievalSection';
 import MediaPlayer from './storage/MediaPlayer';
 import FilePreview from './storage/FilePreview';
+import ModernSpinner from './common/ModernSpinner';
 
 interface StoragePanelProps {
   isConnected: boolean;
@@ -290,9 +291,31 @@ const StoragePanel: React.FC<StoragePanelProps> = ({
       URL.revokeObjectURL(url);
   };
 
+  const showFullScreenLoader = (isProcessing || localIsProcessing) && 
+    ['download', 'play', 'inspect', 'scrub'].includes(activeOperation || '');
+
   return (
     <div className="relative transition-all duration-500">
       
+      {/* Full Screen Loader Overlay */}
+      {showFullScreenLoader && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-violet-500/20 blur-3xl rounded-full animate-pulse"></div>
+            <ModernSpinner size="xl" className="relative z-10" />
+          </div>
+          <h3 className="text-xl font-bold text-white tracking-widest uppercase animate-pulse">
+            {activeOperation === 'download' && 'Retrieving Secure File...'}
+            {activeOperation === 'play' && 'Buffering Secure Stream...'}
+            {activeOperation === 'inspect' && 'Analyzing Metadata...'}
+            {activeOperation === 'scrub' && 'Securely Erasing...'}
+          </h3>
+          <p className="mt-2 text-sm text-slate-400 font-mono">
+            Please wait while we process your request
+          </p>
+        </div>
+      )}
+
       {/* Legacy Media Player Overlay (only used if triggered via other means) */}
       {mediaState.url && mediaState.type && (
         <MediaPlayer 

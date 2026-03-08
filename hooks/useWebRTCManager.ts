@@ -3,9 +3,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import axios from 'axios';
 import { updateProgressNotification, clearProgressNotification, notifyTaskCompletion } from '../utils/backgroundTasks';
+import { Capacitor } from '@capacitor/core';
 
-const REST_URL = '';
-const SIGNALING_URL = '';
+// Use the deployed URL for Capacitor or production, otherwise relative for local dev
+const DEPLOYED_URL = 'https://ais-pre-fepxpuaneshwmjc7uli267-8797777129.asia-east1.run.app';
+const BASE_URL = import.meta.env.VITE_API_BASE || (Capacitor.isNativePlatform() ? DEPLOYED_URL : '');
+
+const REST_URL = BASE_URL;
+const SIGNALING_URL = BASE_URL;
 const API_KEY = 'PleaseGiveCreditIfYouUse';
 const CHUNK_SIZE = 256 * 1024; // 256KB chunks for better throughput and less overhead
 const BUFFER_THRESHOLD = 16 * 1024 * 1024; // 16MB Backpressure limit
@@ -502,6 +507,36 @@ export const useWebRTCManager = () => {
     // 2. Stream File
     const reader = new FileReader();
     let offset = 0;
+    
+    // Use MessageChannel for unthrottled background scheduling
+    const scheduler = new MessageChannel();
+    
+    // Wake Lock to prevent sleep during transfer
+    let wakeLock: any = null;
+    const requestWakeLock = async () => {
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await (navigator as any).wakeLock.request('screen');
+            } catch (err) {
+                console.warn('Wake Lock failed:', err);
+            }
+        }
+    };
+    requestWakeLock();
+
+    const cleanup = () => {
+        if (wakeLock) wakeLock.release();
+        scheduler.port1.onmessage = null;
+        scheduler.port1.close();
+        scheduler.port2.close();
+    };
+
+    const readNextChunk = () => {
+        const slice = file.slice(offset, offset + CHUNK_SIZE);
+        reader.readAsArrayBuffer(slice);
+    };
+
+    scheduler.port1.onmessage = () => readNextChunk();
 
     reader.onload = async (e) => {
         if (!e.target?.result) return;
@@ -541,12 +576,14 @@ export const useWebRTCManager = () => {
 
             if (offset < file.size) {
                 // Yield to event loop every few chunks to prevent blocking
-                if (offset % (CHUNK_SIZE * 5) === 0) {
-                    setTimeout(readNextChunk, 0);
+                // Increased burst size to 5MB for better background performance
+                if (offset % (CHUNK_SIZE * 20) === 0) {
+                    scheduler.port2.postMessage(null);
                 } else {
                     readNextChunk();
                 }
             } else {
+                cleanup();
                 setState(prev => ({ 
                     ...prev, 
                     status: 'CONNECTED',
@@ -567,6 +604,7 @@ export const useWebRTCManager = () => {
             }
         } catch (err) {
             console.error('Send Error:', err);
+            cleanup();
             setState(prev => ({ 
                 ...prev, 
                 status: 'CONNECTED', // Go back to connected even on error
@@ -580,11 +618,6 @@ export const useWebRTCManager = () => {
             isSendingRef.current = false;
             processSendQueue(); // Process next file
         }
-    };
-
-    const readNextChunk = () => {
-        const slice = file.slice(offset, offset + CHUNK_SIZE);
-        reader.readAsArrayBuffer(slice);
     };
 
     readNextChunk();

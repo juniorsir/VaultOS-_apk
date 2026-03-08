@@ -23,7 +23,9 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
-if ('serviceWorker' in navigator) {
+import { Capacitor } from '@capacitor/core';
+
+if ('serviceWorker' in navigator && !Capacitor.isNativePlatform()) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(registration => {
       console.log('SW registered: ', registration);

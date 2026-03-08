@@ -66,7 +66,7 @@ export const useSecureClient = ({ onNotify }: UseSecureClientProps = {}) => {
     }
   }, [isConnected, contextUploadFile, onNotify]);
 
-  const downloadFile = useCallback(async (fileCode: string, password: string = '') => {
+  const downloadFile = useCallback(async (fileCode: string, password: string = '', onProgress?: (progress: number) => void) => {
     if (!isConnected) return;
     setIsProcessing(true);
     try {
