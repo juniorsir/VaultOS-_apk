@@ -4,15 +4,25 @@ import { Capacitor } from '@capacitor/core';
 export const useFilePicker = (onFileSelect: (file: File) => void) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const openFilePicker = useCallback(() => {
+  const openFilePicker = useCallback(async () => {
     if (Capacitor.isNativePlatform()) {
       console.log('Opening native file picker via input element');
+      // On Android, sometimes we need to ensure permissions are granted
+      // But usually the WebChromeClient handles the intent.
     }
     
     if (inputRef.current) {
       // Reset value to allow selecting the same file again
       inputRef.current.value = '';
-      inputRef.current.click();
+      
+      // Add a small delay for touch feedback on mobile
+      if (Capacitor.isNativePlatform()) {
+          setTimeout(() => {
+              inputRef.current?.click();
+          }, 50);
+      } else {
+          inputRef.current.click();
+      }
     } else {
       console.error('File input ref is null');
     }

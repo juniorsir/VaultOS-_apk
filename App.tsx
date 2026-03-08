@@ -9,7 +9,6 @@ import { LayoutIcon, VaultIcon, TerminalIcon, ClockIcon, EnvelopeIcon, WifiIcon 
 import { StoredFile, FileInfo, ForensicReport } from './types';
 import Spinner from './components/common/Spinner';
 import ModernSpinner from './components/common/ModernSpinner';
-import FullScreenLoader from './components/common/FullScreenLoader';
 
 // Lazy load panels for better initial performance
 const AuthPanel = lazy(() => import('./components/AuthPanel'));
@@ -86,6 +85,31 @@ const App: React.FC = () => {
       Notification.requestPermission();
     }
   }, []);
+
+  // Global Error Handling for Mobile Debugging
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error("Global Error:", event.error);
+      // Only show toast for critical errors or if in dev mode
+      if (import.meta.env.DEV) {
+          addToast(`Error: ${event.message}`, 'error');
+      }
+    };
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      console.error("Unhandled Rejection:", event.reason);
+      if (import.meta.env.DEV) {
+          addToast(`Async Error: ${event.reason}`, 'error');
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, [addToast]);
 
   const [showLanding, setShowLanding] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -353,9 +377,6 @@ const App: React.FC = () => {
           <div className="absolute inset-0 backdrop-blur-[1px]"></div>
       </div>
 
-      {/* Full Screen Loader */}
-      <FullScreenLoader isVisible={isProcessing} message="Processing Request..." />
-
       {/* Toast Container */}
       <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-[300] flex flex-col gap-3 pointer-events-none items-end">
         <AnimatePresence mode="popLayout">
@@ -508,11 +529,11 @@ const App: React.FC = () => {
         <main className="relative">
           <Suspense fallback={<LoadingFallback />}>
             <div className={`w-full max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 ${activeTab === 'files' ? '' : 'hidden'}`}>
-              <div className={`grid transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${hideAuthPanel ? 'grid-rows-[0fr] opacity-0 -translate-y-4 mb-0' : 'grid-rows-[1fr] opacity-100 translate-y-0 mb-6'}`}>
-                <div className="overflow-hidden">
+              {!hideAuthPanel && (
+                <div className="mb-6 animate-out fade-out slide-out-to-top-4 duration-500">
                    <AuthPanel isConnected={isConnected} onConnect={connect} isConnecting={isConnecting} />
                 </div>
-              </div>
+              )}
 
               <StoragePanel
                 isConnected={isConnected} isProcessing={isProcessing} onUpload={uploadFile} onDownload={downloadFile} onPlay={fetchFileBlob}

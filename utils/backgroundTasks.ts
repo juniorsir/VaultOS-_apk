@@ -1,4 +1,8 @@
+import { Capacitor } from '@capacitor/core';
+
 export const registerBackgroundTask = async (tag: string) => {
+  if (Capacitor.isNativePlatform()) return false;
+  
   if ('serviceWorker' in navigator && 'SyncManager' in window) {
     try {
       const swRegistration = await navigator.serviceWorker.ready;
@@ -15,6 +19,8 @@ export const registerBackgroundTask = async (tag: string) => {
 };
 
 export const notifyTaskCompletion = (title: string, options?: NotificationOptions) => {
+  if (Capacitor.isNativePlatform()) return;
+
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.ready.then((registration) => {
       registration.showNotification(title, {
@@ -26,6 +32,8 @@ export const notifyTaskCompletion = (title: string, options?: NotificationOption
 };
 
 export const updateProgressNotification = (id: string, title: string, progress: number, body?: string) => {
+  if (Capacitor.isNativePlatform()) return;
+
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.controller?.postMessage({
       type: 'UPDATE_PROGRESS',
@@ -35,6 +43,8 @@ export const updateProgressNotification = (id: string, title: string, progress: 
 };
 
 export const clearProgressNotification = (id: string) => {
+  if (Capacitor.isNativePlatform()) return;
+
   if ('serviceWorker' in navigator && Notification.permission === 'granted') {
     navigator.serviceWorker.controller?.postMessage({
       type: 'CLEAR_PROGRESS',

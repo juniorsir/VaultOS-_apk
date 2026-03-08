@@ -280,7 +280,14 @@ export const UploadSection: React.FC<UploadSectionProps> = ({ isConnected, isPro
       )}
 
       <div className="flex gap-2 items-center">
-        <input type="file" ref={inputRef} onChange={handleFileChange} className="hidden" />
+        <input 
+          type="file" 
+          ref={inputRef} 
+          onChange={handleFileChange} 
+          className="absolute opacity-0 w-0 h-0 pointer-events-none" 
+          aria-hidden="true"
+          tabIndex={-1}
+        />
         {uploadedCode && (
           <button
             onClick={() => setShowQr(true)}
