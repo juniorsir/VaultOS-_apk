@@ -532,7 +532,13 @@ const FilePreview: React.FC<FilePreviewProps> = ({
                                 <div className={`absolute top-0 left-0 p-6 z-20 transition-opacity duration-300 ${!isPlaying ? 'opacity-100' : 'opacity-0 group-hover/video:opacity-100'}`}>
                                     <div className={`flex items-center gap-1.5 px-3 h-8 rounded-lg text-[10px] font-bold border shadow-lg ${forensicReport.is_ai ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
                                         {forensicReport.is_ai ? <ShieldExclamationIcon className="w-4 h-4" /> : <ShieldIcon className="w-4 h-4" />}
-                                        <span className="leading-none mt-0.5">{forensicReport.is_ai ? 'AI DETECTED' : 'HUMAN VERIFIED'}</span>
+                                        <span className="leading-none mt-0.5">
+                                            {forensicReport.is_ai 
+                                                ? (forensicReport.provider && forensicReport.provider !== 'Ensemble-v4' 
+                                                    ? `AI DETECTED: ${forensicReport.provider.toUpperCase()}` 
+                                                    : 'AI DETECTED')
+                                                : 'HUMAN VERIFIED'}
+                                        </span>
                                     </div>
                                 </div>
                             )}

@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { VaultProvider } from './context/VaultContext';
+import { WebRTCProvider } from './context/WebRTCContext';
 
 // Axios and crypto-js are expected to be available in the environment.
 // In a real project, you would add them to package.json.
@@ -36,7 +37,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <VaultProvider>
-      <App />
+      <WebRTCProvider>
+        <App />
+      </WebRTCProvider>
     </VaultProvider>
   </React.StrictMode>
 );

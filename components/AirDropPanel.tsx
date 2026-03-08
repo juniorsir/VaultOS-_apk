@@ -5,11 +5,11 @@ import { QRCodeSVG } from 'qrcode.react';
 import { 
   WifiIcon, ChainIcon, XMarkIcon, 
   UploadIcon, DownloadIcon, ShieldCheckIcon, DocumentIcon, QrCodeIcon, ArrowPathIcon,
-  PaperAirplaneIcon, ClockIcon
+  PaperAirplaneIcon, ClockIcon, CloudIcon
 } from './Icons';
 import ModernSpinner from './common/ModernSpinner';
 import QRScanner from './common/QRScanner';
-import { useWebRTC, TransferItem } from '../hooks/useWebRTC';
+import { useWebRTC } from '../context/WebRTCContext';
 
 const AirDropPanel: React.FC = memo(() => {
   const { 
@@ -98,7 +98,8 @@ const AirDropPanel: React.FC = memo(() => {
   const copyRoomId = async () => {
       if(roomId) {
         try {
-          await navigator.clipboard.writeText(roomId);
+          const url = `${window.location.origin}?roomId=${roomId}`;
+          await navigator.clipboard.writeText(url);
         } catch (err) {
           console.error('Failed to copy', err);
         }
@@ -291,34 +292,44 @@ const AirDropPanel: React.FC = memo(() => {
                     {status === 'CREATING' && !roomId ? (
                         <div className="flex flex-col items-center gap-6">
                             <div className="relative">
-                                {/* Radar Ripples */}
+                                {/* Cloud Environment Animation */}
                                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    {[0, 1].map((i) => (
+                                    {/* Floating Particles */}
+                                    {[0, 1, 2, 3, 4].map((i) => (
                                         <motion.div
                                             key={i}
-                                            className="absolute rounded-full border border-violet-500/20 bg-violet-500/5"
-                                            initial={{ width: 60, height: 60, opacity: 0 }}
+                                            className="absolute w-1.5 h-1.5 bg-violet-400/60 rounded-full"
+                                            initial={{ y: 40, x: (i - 2) * 20, opacity: 0, scale: 0 }}
                                             animate={{
-                                                width: [60, 200],
-                                                height: [60, 200],
-                                                opacity: [0.5, 0],
+                                                y: -40,
+                                                opacity: [0, 1, 0],
+                                                scale: [0, 1, 0],
                                             }}
                                             transition={{
                                                 repeat: Infinity,
-                                                duration: 2,
-                                                delay: i * 1,
-                                                ease: "easeOut",
+                                                duration: 2 + Math.random(),
+                                                delay: i * 0.3,
+                                                ease: "easeInOut",
                                             }}
                                         />
                                     ))}
+                                    {/* Pulse Effect */}
+                                    <motion.div
+                                        className="absolute inset-0 bg-violet-500/20 rounded-full blur-xl"
+                                        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                    />
                                 </div>
-                                <div className="relative z-10 bg-slate-900 p-4 rounded-full border border-violet-500/30 shadow-xl">
-                                    <ModernSpinner size="lg" color="#8b5cf6" />
+                                <div className="relative z-10 bg-slate-900 p-6 rounded-full border border-violet-500/30 shadow-xl shadow-violet-900/20">
+                                    <CloudIcon className="w-12 h-12 text-violet-400" />
+                                    <div className="absolute -bottom-1 -right-1 bg-slate-900 rounded-full p-1 border border-violet-500/30">
+                                        <ModernSpinner size="sm" color="#8b5cf6" />
+                                    </div>
                                 </div>
                             </div>
                             <div className="text-center">
-                                <h3 className="text-lg font-bold text-white mb-1">Initializing Room</h3>
-                                <p className="text-slate-400 font-mono text-xs">Generating secure keys...</p>
+                                <h3 className="text-lg font-bold text-white mb-1">Initializing Cloud Environment</h3>
+                                <p className="text-slate-400 font-mono text-xs">Allocating secure ephemeral storage...</p>
                             </div>
                         </div>
                     ) : (
@@ -336,35 +347,41 @@ const AirDropPanel: React.FC = memo(() => {
                                     <div className="w-full flex items-center justify-between border-b border-slate-100 pb-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-violet-400">
-                                                <WifiIcon className="w-4 h-4" />
+                                                <CloudIcon className="w-4 h-4" />
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none">Vault</span>
-                                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest leading-none">ID Card</span>
+                                                <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest leading-none">Cloud Link</span>
                                             </div>
                                         </div>
-                                        <div className="px-2 py-1 rounded bg-slate-100 text-[10px] font-mono text-slate-500 font-bold tracking-wider">DIRECT</div>
+                                        <div className="px-2 py-1 rounded bg-slate-100 text-[10px] font-mono text-slate-500 font-bold tracking-wider">SECURE</div>
                                     </div>
                                     <div className="relative p-2 bg-white rounded-xl">
-                                        <QRCodeSVG value={roomId || ''} size={220} level="H" fgColor="#0f172a" bgColor="#ffffff" />
+                                        <QRCodeSVG 
+                                            value={`${window.location.origin}?roomId=${roomId}`} 
+                                            size={220} 
+                                            level="H" 
+                                            fgColor="#0f172a" 
+                                            bgColor="#ffffff" 
+                                        />
                                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                                             <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.1)] border-4 border-white">
                                                 <div className="w-full h-full bg-slate-900 rounded-xl flex items-center justify-center">
-                                                    <ChainIcon className="w-8 h-8 text-white" />
+                                                    <CloudIcon className="w-8 h-8 text-white" />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="w-full text-center border-t border-slate-100 pt-4">
-                                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mb-1.5">Session ID</p>
+                                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mb-1.5">Cloud Session ID</p>
                                         <div className="text-3xl font-black text-slate-900 font-mono tracking-widest bg-slate-100/50 rounded-lg py-1">{roomId}</div>
                                     </div>
                                 </div>
                             </div>
                             <div className="text-center space-y-4">
                                 <div className="flex flex-col items-center gap-2">
-                                    <h3 className="text-white font-bold text-lg">Searching for Peers...</h3>
-                                    <p className="text-slate-400 text-sm">Scan the QR code to connect instantly</p>
+                                    <h3 className="text-white font-bold text-lg">Syncing with Cloud...</h3>
+                                    <p className="text-slate-400 text-sm">Scan QR or share link to join session</p>
                                 </div>
                                 <div className="flex items-center justify-center gap-3 px-5 py-2 rounded-full bg-slate-800/50 border border-white/5 w-fit mx-auto">
                                     <div className="flex gap-1">
@@ -372,7 +389,7 @@ const AirDropPanel: React.FC = memo(() => {
                                         <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce delay-100"></span>
                                         <span className="w-1.5 h-1.5 bg-violet-500 rounded-full animate-bounce delay-200"></span>
                                     </div>
-                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Broadcasting Signal</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Waiting for Peer</span>
                                 </div>
                             </div>
                         </div>
@@ -389,33 +406,33 @@ const AirDropPanel: React.FC = memo(() => {
                     exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
                     className="flex flex-col items-center justify-center h-full relative overflow-hidden"
                 >
-                    {/* Radar Ripples */}
+                    {/* Cloud Sync Waves */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        {[0, 1, 2, 3].map((i) => (
+                        {[0, 1, 2].map((i) => (
                             <motion.div
                                 key={i}
                                 className="absolute rounded-full border border-violet-500/20 bg-violet-500/5"
                                 initial={{ width: 100, height: 100, opacity: 0 }}
                                 animate={{
-                                    width: [100, 500],
-                                    height: [100, 500],
+                                    width: [100, 400],
+                                    height: [100, 400],
                                     opacity: [0.6, 0],
                                 }}
                                 transition={{
                                     repeat: Infinity,
                                     duration: 3,
-                                    delay: i * 0.8,
+                                    delay: i * 1,
                                     ease: "easeOut",
                                 }}
                             />
                         ))}
                     </div>
 
-                    {/* Central Device Icon */}
+                    {/* Central Cloud Icon */}
                     <div className="relative z-10 mb-8">
                         <div className="w-24 h-24 bg-slate-900 rounded-full border border-violet-500/50 flex items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.3)] relative">
                              <div className="absolute inset-0 bg-violet-500/20 rounded-full animate-pulse"></div>
-                             <ChainIcon className="w-10 h-10 text-white relative z-10" />
+                             <CloudIcon className="w-10 h-10 text-white relative z-10" />
                              
                              {/* Orbiting particle */}
                              <motion.div 
@@ -435,7 +452,7 @@ const AirDropPanel: React.FC = memo(() => {
                             transition={{ delay: 0.2 }}
                             className="text-2xl font-bold text-white tracking-tight"
                         >
-                            Establishing Connection
+                            Establishing Cloud Link
                         </motion.h3>
                         <motion.p 
                             initial={{ opacity: 0 }}

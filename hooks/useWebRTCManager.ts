@@ -7,8 +7,8 @@ import { updateProgressNotification, clearProgressNotification, notifyTaskComple
 const REST_URL = '';
 const SIGNALING_URL = '';
 const API_KEY = 'PleaseGiveCreditIfYouUse';
-const CHUNK_SIZE = 64 * 1024; // 64KB chunks for better throughput
-const BUFFER_THRESHOLD = 8 * 1024 * 1024; // 8MB Backpressure limit
+const CHUNK_SIZE = 256 * 1024; // 256KB chunks for better throughput and less overhead
+const BUFFER_THRESHOLD = 16 * 1024 * 1024; // 16MB Backpressure limit
 
 export interface TransferItem {
   id: string;
@@ -30,15 +30,56 @@ interface TransferState {
   transfers: TransferItem[];
 }
 
-export const useWebRTC = () => {
-  const [state, setState] = useState<TransferState>({
-    status: 'IDLE',
-    error: null,
-    roomId: null,
-    isHost: false,
-    peersCount: 0,
-    transfers: []
+export const useWebRTCManager = () => {
+  const [state, setState] = useState<TransferState>(() => {
+    // Load from localStorage
+    const saved = localStorage.getItem('p2p_transfers');
+    let initialTransfers: TransferItem[] = [];
+    if (saved) {
+        try {
+            initialTransfers = JSON.parse(saved);
+            // Mark interrupted transfers
+            initialTransfers = initialTransfers.map(t => 
+                t.status === 'transferring' || t.status === 'pending'
+                ? { ...t, status: 'error', speed: 0 } 
+                : t
+            );
+        } catch (e) {
+            console.error("Failed to load transfers", e);
+        }
+    }
+    return {
+        status: 'IDLE',
+        error: null,
+        roomId: null,
+        isHost: false,
+        peersCount: 0,
+        transfers: initialTransfers
+    };
   });
+
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
+
+  // Persist transfers
+  useEffect(() => {
+    localStorage.setItem('p2p_transfers', JSON.stringify(state.transfers));
+  }, [state.transfers]);
+
+  // Warn on close if transferring
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        if (state.status === 'TRANSFERRING' || state.status === 'PAIRING' || state.status === 'CONNECTING') {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [state.status]);
 
   const socketRef = useRef<Socket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -154,7 +195,13 @@ export const useWebRTC = () => {
     // Prevent duplicate connections
     if (socketRef.current && socketRef.current.connected) {
         // If room ID changed, re-join
-        return socketRef.current;
+        if (state.roomId !== roomId) {
+            console.log('Switching rooms, disconnecting old socket...');
+            socketRef.current.disconnect();
+            socketRef.current = null;
+        } else {
+            return socketRef.current;
+        }
     }
 
     const socket = io(SIGNALING_URL || undefined, {
@@ -371,7 +418,11 @@ export const useWebRTC = () => {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    // Revoke after a delay to ensure download starts
+    setTimeout(() => {
+        URL.revokeObjectURL(url);
+    }, 1000);
 
     // Reset buffer
     incomingBufferRef.current = [];
@@ -457,14 +508,30 @@ export const useWebRTC = () => {
         const buffer = e.target.result as ArrayBuffer;
         
         try {
-            // Backpressure check
+            // Check connection state
+            if (channel.readyState !== 'open') {
+                throw new Error('Data channel closed');
+            }
+
+            // Backpressure check with timeout fallback
             if (channel.bufferedAmount > BUFFER_THRESHOLD) {
                 await new Promise<void>(resolve => {
+                    let resolved = false;
                     const onLow = () => {
+                        if (resolved) return;
+                        resolved = true;
                         channel.removeEventListener('bufferedamountlow', onLow);
                         resolve();
                     };
                     channel.addEventListener('bufferedamountlow', onLow);
+                    
+                    // Fallback polling every 100ms if event misses
+                    const interval = setInterval(() => {
+                        if (channel.bufferedAmount <= BUFFER_THRESHOLD) {
+                            clearInterval(interval);
+                            onLow();
+                        }
+                    }, 100);
                 });
             }
             
@@ -473,7 +540,12 @@ export const useWebRTC = () => {
             updateTransferProgress(newTransferId, offset, file.size);
 
             if (offset < file.size) {
-                readNextChunk();
+                // Yield to event loop every few chunks to prevent blocking
+                if (offset % (CHUNK_SIZE * 5) === 0) {
+                    setTimeout(readNextChunk, 0);
+                } else {
+                    readNextChunk();
+                }
             } else {
                 setState(prev => ({ 
                     ...prev, 
@@ -555,12 +627,12 @@ export const useWebRTC = () => {
         dataChannelRef.current = null;
     }
     setState(prev => ({ 
+        ...prev,
         status: 'IDLE', 
         error: null, 
         roomId: null, 
         isHost: false, 
-        peersCount: 0,
-        transfers: []
+        peersCount: 0
     }));
   }, []);
 

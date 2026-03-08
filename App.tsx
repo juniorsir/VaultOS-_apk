@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, lazy, Suspense, useRef } from 
 import { motion, AnimatePresence } from 'framer-motion';
 import Toast, { ToastType } from './components/common/Toast';
 import { useSecureClient } from './hooks/useSecureClient';
+import { useWebRTC } from './context/WebRTCContext';
 import { useTempMail } from './hooks/useTempMail';
 import { LayoutIcon, VaultIcon, TerminalIcon, ClockIcon, EnvelopeIcon, WifiIcon } from './components/Icons';
 import { StoredFile, FileInfo, ForensicReport } from './types';
@@ -99,6 +100,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     // Check URL params first
     const params = new URLSearchParams(window.location.search);
+    if (params.get('roomId')) {
+        return 'airlink';
+    }
     if (params.get('mailSession')) {
         return 'mail';
     }
@@ -212,11 +216,32 @@ const App: React.FC = () => {
     deleteFile, getFileInfo, analyzeFile, scrubMetadata, isConnecting, isProcessing,
   } = useSecureClient({ onNotify: addToast });
 
+  const { status: webRTCStatus, joinSession } = useWebRTC();
+
+  // Handle P2P Room ID from URL (QR Code)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const roomId = params.get('roomId');
+    if (roomId) {
+        setActiveTab('airlink');
+        joinSession(roomId);
+        // Clean URL without refresh
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+        window.history.replaceState({path: newUrl}, '', newUrl);
+    }
+  }, [joinSession]);
+
   // Global drag and drop listener to switch to "My Files" tab
   useEffect(() => {
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
-      if (e.dataTransfer?.types.includes('Files') && activeTab !== 'files') {
+      // Only switch if NOT connected via P2P (CONNECTED or TRANSFERRING)
+      if (
+        e.dataTransfer?.types.includes('Files') && 
+        activeTab !== 'files' && 
+        webRTCStatus !== 'CONNECTED' && 
+        webRTCStatus !== 'TRANSFERRING'
+      ) {
         setActiveTab('files');
       }
     };
@@ -225,7 +250,7 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('dragover', handleDragOver);
     };
-  }, [activeTab]);
+  }, [activeTab, webRTCStatus]);
 
   useEffect(() => {
     if (isConnected) {

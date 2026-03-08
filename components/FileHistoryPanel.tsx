@@ -238,7 +238,13 @@ const FileHistoryPanel: React.FC<FileHistoryPanelProps> = React.memo(({
                                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-900/10'
                                            }`}>
                                                {file.forensicReport.is_ai ? <ShieldAlert className="w-3.5 h-3.5" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                                               <span>{file.forensicReport.is_ai ? 'AI GENERATED' : 'HUMAN VERIFIED'}</span>
+                                               <span>
+                                                   {file.forensicReport.is_ai 
+                                                       ? (file.forensicReport.provider && file.forensicReport.provider !== 'Ensemble-v4' 
+                                                           ? `AI GENERATED: ${file.forensicReport.provider.toUpperCase()}` 
+                                                           : 'AI GENERATED')
+                                                       : 'HUMAN VERIFIED'}
+                                               </span>
                                            </div>
                                        </div>
                                     )}

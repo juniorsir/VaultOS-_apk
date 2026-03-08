@@ -101,7 +101,9 @@ const FileInfoSection: React.FC<FileInfoSectionProps> = ({
                       {/* Detailed Metrics Grid */}
                       <div className="grid grid-cols-2 gap-2 mb-4">
                           <div className="p-2.5 bg-slate-800/40 rounded-lg border border-white/5">
-                              <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">Detection Model</div>
+                              <div className="text-[9px] text-slate-500 uppercase tracking-wider mb-1">
+                                  {forensicReport.is_ai ? 'Suspected Source' : 'Detection Model'}
+                              </div>
                               <div className="text-xs font-mono text-slate-300 truncate" title={forensicReport.provider}>
                                   {forensicReport.provider || 'Ensemble-v4'}
                               </div>
